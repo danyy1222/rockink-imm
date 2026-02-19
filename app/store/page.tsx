@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/header';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,6 @@ import { ArrowLeft, Search, ShoppingCart } from 'lucide-react';
 
 function StoreContent() {
   const { addItem } = useCart();
-  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
@@ -47,9 +45,10 @@ function StoreContent() {
   }, []);
 
   useEffect(() => {
-    const brandParam = searchParams.get('brand');
+    const params = new URLSearchParams(window.location.search);
+    const brandParam = params.get('brand');
     setSelectedBrand(brandParam ? normalizeBrandName(brandParam) : null);
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (!toastMessage) return;
