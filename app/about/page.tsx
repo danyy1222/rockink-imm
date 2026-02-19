@@ -19,7 +19,7 @@ function AboutContent() {
         
         <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground leading-tight">
-            Sobre <span className="gradient-text">AgroTienda</span>
+            Sobre <span className="gradient-text">Rockink IMM</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
@@ -38,7 +38,7 @@ function AboutContent() {
               </div>
               <h2 className="text-5xl font-bold mb-6 text-foreground leading-tight">Transformando la Agricultura</h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                En AgroTienda, creemos que cada agricultor merece acceso a productos de la más alta calidad. Nuestra misión es revolucionar la forma en que los productores agrícolas obtienen los insumos que necesitan para prosperar.
+                En Rockink IMM, creemos que cada agricultor merece acceso a productos de la más alta calidad. Nuestra misión es revolucionar la forma en que los productores agrícolas obtienen los insumos que necesitan para prosperar.
               </p>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 Trabajamos incansablemente para conectar a farmers con productos premium que maximicen su rendimiento y rentabilidad, transformando cada cosecha en un éxito.
@@ -140,7 +140,7 @@ function AboutContent() {
               <div className="flex-grow pt-2 pl-6 border-l-2 border-primary/30 hover:border-primary/60 transition-colors group">
                 <div className="absolute w-4 h-4 bg-primary rounded-full -left-[11px] mt-2" />
                 <h3 className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">El Comienzo</h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">AgroTienda nace con la visión de transformar el acceso a productos agropecuarios de calidad en América Latina. Conectamos directamente con agricultores y proveedores, sembrando las raíces de una revolución agrícola.</p>
+                <p className="text-muted-foreground text-lg leading-relaxed">Rockink IMM nace con la visión de transformar el acceso a productos agropecuarios de calidad en América Latina. Conectamos directamente con agricultores y proveedores, sembrando las raíces de una revolución agrícola.</p>
               </div>
             </div>
 
@@ -260,7 +260,7 @@ function AboutContent() {
         
         <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
           <h2 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-6 leading-tight">Transforma Tu Negocio Hoy</h2>
-          <p className="text-2xl text-primary-foreground/95 mb-12">Únete a miles de agricultores que ya están cosechando éxito con AgroTienda.</p>
+          <p className="text-2xl text-primary-foreground/95 mb-12">Únete a miles de agricultores que ya están cosechando éxito con Rockink IMM.</p>
           
           <div className="flex flex-col sm:flex-row flex-wrap gap-6 justify-center">
             <Link href="/#products">
@@ -275,7 +275,7 @@ function AboutContent() {
             </Link>
           </div>
 
-          <p className="text-primary-foreground/80 mt-8 text-lg">¿Preguntas? Contáctanos: +51 949 478 966</p>
+          <p className="text-primary-foreground/80 mt-8 text-lg">¿Preguntas? Contáctanos: +51 962838329</p>
         </div>
       </section>
 
@@ -284,7 +284,7 @@ function AboutContent() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-lg mb-3">AgroTienda</h3>
+              <h3 className="font-bold text-lg mb-3">Rockink IMM</h3>
               <p className="text-sm opacity-90">Transformando la agricultura con tecnología y calidad.</p>
             </div>
             <div>
@@ -305,12 +305,12 @@ function AboutContent() {
             <div>
               <h4 className="font-semibold mb-4 text-sm">Contacto</h4>
               <p className="text-sm opacity-90 mb-2">contacto@agrotienda.pe</p>
-              <p className="text-sm opacity-90">+51 949 478 966</p>
+              <p className="text-sm opacity-90">+51 962838329</p>
             </div>
           </div>
           
           <div className="border-t border-primary/30 pt-8 text-center">
-            <p className="text-sm opacity-90">© 2024 AgroTienda. Todos los derechos reservados.</p>
+            <p className="text-sm opacity-90">© 2026 Rockink IMM. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>
@@ -325,3 +325,4 @@ export default function AboutPage() {
     </CartProvider>
   );
 }
+

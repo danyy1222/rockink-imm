@@ -36,6 +36,9 @@ export function Header({ isAdmin = false }: HeaderProps) {
                 <Link href="/about" className="text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200">
                   Sobre Nosotros
                 </Link>
+                <Link href="/contacto" className="text-sm font-semibold text-foreground hover:text-primary transition-colors duration-200">
+                  Contacto
+                </Link>
               </>
             )}
             {isAdmin && (
@@ -101,6 +104,9 @@ export function Header({ isAdmin = false }: HeaderProps) {
                 </Link>
                 <Link href="/about" className="py-2 px-3 hover:bg-primary/50 rounded-lg transition-colors duration-200 text-sm font-medium">
                   Sobre Nosotros
+                </Link>
+                <Link href="/contacto" className="py-2 px-3 hover:bg-primary/50 rounded-lg transition-colors duration-200 text-sm font-medium">
+                  Contacto
                 </Link>
                 <Link href="/cart" className="py-2 px-3 hover:bg-primary/50 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center justify-between">
                   <span>Mi Carrito</span>

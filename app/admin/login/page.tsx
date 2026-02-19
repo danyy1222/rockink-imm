@@ -58,7 +58,7 @@ function LoginContent() {
                 <LogIn className="w-8 h-8 text-primary" />
               </div>
               <h1 className="text-3xl font-bold text-primary">Panel Admin</h1>
-              <p className="text-muted-foreground mt-2">AgroTienda</p>
+              <p className="text-muted-foreground mt-2">Rockink IMM</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,7 +112,7 @@ function LoginContent() {
             </form>
 
             <p className="text-center text-xs text-muted-foreground mt-6">
-              © 2024 AgroTienda - Panel de Administración
+              © 2026 Rockink IMM - Panel de Administración
             </p>
           </CardContent>
         </Card>
@@ -124,3 +124,4 @@ function LoginContent() {
 export default function LoginPage() {
   return <LoginContent />;
 }
+

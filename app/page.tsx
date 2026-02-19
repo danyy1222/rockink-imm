@@ -6,6 +6,7 @@ import { Header } from '@/components/header';
 import { OffersCarousel } from '@/components/offers-carousel';
 import { Button } from '@/components/ui/button';
 import { PRODUCTS, Product, Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
+import { normalizeBrandName } from '@/lib/product-brand';
 import { CartProvider } from '@/lib/cart-context';
 import { ArrowRight } from 'lucide-react';
 
@@ -103,13 +104,10 @@ function HomeContent() {
               key={slide.id}
               className={`absolute inset-0 transition-opacity duration-1000 ${
                 idx === currentHeroIndex ? 'opacity-100' : 'opacity-0'
-              }`}
+              } bg-cover md:bg-contain bg-no-repeat bg-center`}
               style={{
                 backgroundImage: `url(${slide.url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: '50% 50%',
                 filter: 'brightness(0.82) saturate(1.05)',
-                transform: 'scale(1.02)',
               }}
             />
           ))}
@@ -123,11 +121,11 @@ function HomeContent() {
             </div>
           </div>
 
-          <h1 className="hero-text text-white mb-8 [text-shadow:0_2px_24px_rgba(0,0,0,0.45)]" role="heading" aria-level={1}>
+          <h1 className="hero-text text-white mb-6 sm:mb-8 max-w-5xl mx-auto [text-shadow:0_2px_24px_rgba(0,0,0,0.45)]" role="heading" aria-level={1}>
             {currentHeroSlide.title}
           </h1>
 
-          <p className="text-lg sm:text-xl md:text-3xl text-white/90 max-w-4xl mx-auto mb-8 sm:mb-12 leading-relaxed font-light [text-shadow:0_2px_16px_rgba(0,0,0,0.35)]">
+          <p className="hero-subtext text-white/90 max-w-4xl mx-auto mb-8 sm:mb-12 font-light [text-shadow:0_2px_16px_rgba(0,0,0,0.35)]">
             {currentHeroSlide.description}
           </p>
 
@@ -199,15 +197,16 @@ function HomeContent() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {brands.map((brand) => (
-              <div key={brand.id} className="bg-white rounded-lg p-8 flex items-center justify-center hover:shadow-xl transition-all duration-300 border border-border/20 hover:border-primary/50">
-                <div className="relative w-full h-24 flex items-center justify-center">
-                  <img
-                    src={brand.logo || "/placeholder.svg"}
-                    alt={brand.name}
-                    className="max-w-full max-h-full object-contain"
-                  />
+              <Link
+                key={brand.id}
+                href={`/store?brand=${encodeURIComponent(normalizeBrandName(brand.name))}`}
+                className="bg-white rounded-lg p-8 flex items-center justify-center hover:shadow-xl transition-all duration-300 border border-border/20 hover:border-primary/50"
+              >
+                <div className="relative w-full h-24 flex flex-col items-center justify-center gap-2">
+                  <img src={brand.logo || "/placeholder.svg"} alt={brand.name} className="max-w-full max-h-full object-contain" />
+                  <span className="text-xs font-semibold text-muted-foreground">{normalizeBrandName(brand.name)}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -222,7 +221,7 @@ function HomeContent() {
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-primary-foreground mb-6 sm:mb-8 leading-tight">Estamos Listos para Ayudarte</h2>
-          <p className="text-xl md:text-2xl text-primary-foreground/90 mb-12">Únete a miles de agricultores que confían en AgroTienda para sus necesidades.</p>
+          <p className="text-xl md:text-2xl text-primary-foreground/90 mb-12">Únete a miles de agricultores que confían en Rockink IMM para sus necesidades.</p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link href="#products">
@@ -236,42 +235,6 @@ function HomeContent() {
                 Conocer Más
               </Button>
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-background border-t border-border/40">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">Contáctate con Nosotros</h2>
-          <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10">
-            Síguenos en redes sociales para novedades, promociones y nuevos productos.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://www.facebook.com/rockinkperu"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Facebook
-            </a>
-            <a
-              href="https://www.instagram.com/rockink_imm/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-pink-600 text-white font-semibold hover:bg-pink-700 transition-colors"
-            >
-              Instagram
-            </a>
-            <a
-              href="https://www.tiktok.com/@rockinkimm"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-black text-white font-semibold hover:bg-black/85 transition-colors"
-            >
-              TikTok
-            </a>
           </div>
         </div>
       </section>
@@ -317,8 +280,8 @@ function HomeContent() {
 
             <div>
               <h4 className="font-semibold mb-4 text-white">Contacto</h4>
-              <p className="text-gray-400 text-sm mb-2">soporte@agrotienda.pe</p>
-              <p className="text-gray-400 text-sm mb-4">+51 949 478 966</p>
+              <p className="text-gray-400 text-sm mb-2">contacto@rockinkimm.com</p>
+              <p className="text-gray-400 text-sm mb-4">+51 962838329</p>
               <div className="flex gap-3">
                 <a
                   href="https://www.facebook.com/rockinkperu"
@@ -349,7 +312,7 @@ function HomeContent() {
           </div>
 
           <div className="border-t border-gray-700 pt-8 text-center">
-            <p className="text-gray-400 text-sm">© 2024 AgroTienda. Todos los derechos reservados.</p>
+            <p className="text-gray-400 text-sm">© 2026 Rockink IMM. Todos los derechos reservados.</p>
             <p className="text-gray-500 text-xs mt-2">Transformando la agricultura con innovación y calidad</p>
           </div>
         </div>
@@ -365,4 +328,5 @@ export default function Home() {
     </CartProvider>
   );
 }
+
 

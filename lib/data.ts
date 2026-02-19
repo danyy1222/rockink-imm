@@ -212,7 +212,7 @@ export const DEFAULT_BRANDS: Brand[] = [
   },
   {
     id: '4',
-    name: 'Páginas',
+    name: 'Sunway',
     logo: 'https://images.unsplash.com/photo-1560264357-8d9766985b90?w=200&h=100&fit=crop',
   },
 ];
@@ -242,8 +242,8 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
 ];
 
 export const PHONE_NUMBERS = {
-  tier1: '+51 949478966', // 1-10 productos
-  tier2: '+51 959670506', // 11-50 productos
+  tier1: '+51 962838329', // 1-10 productos
+  tier2: '+51 962838329', // 11-50 productos
   tier3: '+51 962838329', // 50+ productos
 };
 

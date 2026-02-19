@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -11,9 +11,11 @@ import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
+  onQuickView?: (product: Product) => void;
+  onAddedToCart?: (product: Product) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCardProps) {
   const { addItem } = useCart();
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -38,19 +40,18 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <div className="relative w-full h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden group">
         <Image
-          src={images[currentImageIndex] || "/placeholder.svg"}
+          src={images[currentImageIndex] || '/placeholder.svg'}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         <div className="absolute top-3 right-3 bg-accent text-accent-foreground px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg">
           <Tag className="w-3 h-3" />
           {product.category}
         </div>
 
-        {/* Image Navigation */}
         {images.length > 1 && (
           <>
             <button
@@ -95,19 +96,33 @@ export function ProductCard({ product }: ProductCardProps) {
         </p>
 
         <div className="pt-2 border-t border-border/30">
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              addItem(product.id);
-            }}
-            className="btn-primary shadow-md text-sm w-full"
-            disabled={!product.inStock}
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Añadir al carrito
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickView?.(product);
+              }}
+              className="text-sm"
+            >
+              Vista rapida
+            </Button>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                addItem(product.id);
+                onAddedToCart?.(product);
+              }}
+              className="btn-primary shadow-md text-sm w-full"
+              disabled={!product.inStock}
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Anadir
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
+

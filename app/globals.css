@@ -258,11 +258,18 @@
 }
 
 .hero-text {
-  font-size: clamp(2.25rem, 8vw, 7rem);
+  font-size: clamp(2.2rem, 8vw, 5.8rem);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.08;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.hero-subtext {
+  font-size: clamp(1.1rem, 3.7vw, 2rem);
+  line-height: 1.35;
+  text-wrap: pretty;
 }
 
 .subtle-border {
