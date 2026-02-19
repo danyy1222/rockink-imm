@@ -38,7 +38,7 @@ function StoreContent() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 md:px-8 bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-14 sm:pb-20 px-4 sm:px-6 md:px-8 bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="max-w-7xl mx-auto">
           <Link href="/">
             <Button variant="ghost" className="mb-8 text-foreground hover:text-primary">
@@ -47,17 +47,17 @@ function StoreContent() {
             </Button>
           </Link>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-4 sm:mb-6">
             Tienda <span className="text-primary">Completa</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl">
             Explora nuestro catálogo completo de productos agropecuarios premium. {allProducts.length} productos disponibles.
           </p>
         </div>
       </section>
 
       {/* Filters */}
-      <section className="py-20 px-4 md:px-8 bg-background border-b border-gray-100" id="categories">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 md:px-8 bg-background border-b border-gray-100" id="categories">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold mb-8 text-foreground">Filtrar por Categoría</h2>
           <div className="flex flex-wrap gap-3">
@@ -91,10 +91,10 @@ function StoreContent() {
       </section>
 
       {/* Products Grid */}
-      <section className="py-32 px-4 md:px-8 bg-background" id="products">
+      <section className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-8 bg-background" id="products">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
               {selectedCategory ? (
                 <>
                   Productos en <span className="text-primary">{selectedCategory}</span>
@@ -105,7 +105,7 @@ function StoreContent() {
                 </>
               )}
             </h2>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-base sm:text-xl text-muted-foreground">
               {filteredProducts.length} productos disponibles
             </p>
           </div>
@@ -135,6 +135,42 @@ function StoreContent() {
               </Button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-muted/40 border-t border-border/40">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">Contáctate con Nosotros</h2>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10">
+            ¿Necesitas asesoría para elegir productos? Escríbenos por nuestras redes.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://www.facebook.com/rockinkperu"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Facebook
+            </a>
+            <a
+              href="https://www.instagram.com/rockink_imm/"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-pink-600 text-white font-semibold hover:bg-pink-700 transition-colors"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://www.tiktok.com/@rockinkimm"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-black text-white font-semibold hover:bg-black/85 transition-colors"
+            >
+              TikTok
+            </a>
+          </div>
         </div>
       </section>
     </div>

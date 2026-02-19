@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Product } from '@/lib/data';
@@ -15,21 +15,27 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
+  const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   return (
-    <Card className="overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20">
+    <Card
+      onClick={() => router.push(`/product/${product.id}`)}
+      className="overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20 cursor-pointer"
+    >
       <div className="relative w-full h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden group">
         <Image
           src={images[currentImageIndex] || "/placeholder.svg"}
@@ -80,31 +86,25 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <CardContent className="p-5 flex flex-col flex-grow">
-        <Link href={`/product/${product.id}`}>
-          <h3 className="text-base font-bold text-foreground hover:text-primary mb-2 line-clamp-2 cursor-pointer transition-colors duration-200">
-            {product.name}
-          </h3>
-        </Link>
+        <h3 className="text-base font-bold text-foreground hover:text-primary mb-2 line-clamp-2 transition-colors duration-200">
+          {product.name}
+        </h3>
 
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-grow leading-relaxed">
           {product.description}
         </p>
 
-        <div className="flex gap-2 pt-2 border-t border-border/30">
-          <Link href={`/product/${product.id}`} className="flex-1">
-            <Button 
-              variant="outline" 
-              className="w-full bg-transparent border-primary/20 hover:bg-primary/5 hover:border-primary/50 transition-all duration-200 text-sm font-medium"
-            >
-              Ver Detalles
-            </Button>
-          </Link>
+        <div className="pt-2 border-t border-border/30">
           <Button
-            onClick={() => addItem(product.id)}
-            className="btn-primary shadow-md text-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              addItem(product.id);
+            }}
+            className="btn-primary shadow-md text-sm w-full"
             disabled={!product.inStock}
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Añadir al carrito
           </Button>
         </div>
       </CardContent>

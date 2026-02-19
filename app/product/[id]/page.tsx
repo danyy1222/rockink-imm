@@ -11,12 +11,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 
+function toEmbeddable3dUrl(url?: string) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.includes('/embed')) return trimmed;
+  if (trimmed.includes('hitem3d.ai/share/')) {
+    return trimmed.replace('/share/', '/embed/');
+  }
+  return trimmed;
+}
+
 function ProductDetailContent({ productId }: { productId: string }) {
   const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const product = allProducts.find((p) => p.id === productId);
   const [added, setAdded] = useState(false);
   const { addItem } = useCart();
+  const embeddable3dUrl = toEmbeddable3dUrl(product?.model3dEmbedUrl);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -155,6 +167,39 @@ function ProductDetailContent({ productId }: { productId: string }) {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      <section className="bg-card py-12 px-4 mt-12">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl font-bold text-primary mb-6">Vista 3D del producto</h2>
+          {embeddable3dUrl ? (
+            <div className="space-y-4">
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={embeddable3dUrl}
+                  title="Modelo 3D del producto"
+                  frameBorder="0"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+              <a
+                href={product.model3dEmbedUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block text-sm text-primary underline"
+              >
+                Abrir modelo 3D en una pestaña nueva
+              </a>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Este producto no tiene modelo 3D configurado.
+            </p>
+          )}
         </div>
       </section>
 

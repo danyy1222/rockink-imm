@@ -5,6 +5,7 @@ export interface Product {
   category: string;
   images: string[];
   image: string;
+  model3dEmbedUrl?: string;
   specifications: string[];
   youtubeId: string;
   inStock: boolean;

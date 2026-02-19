@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from "react"
 
@@ -34,6 +34,15 @@ function AdminDashboardContent() {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [heroUploadImages, setHeroUploadImages] = useState<string[]>([]);
 
+  const getApiErrorMessage = async (response: Response, fallback: string) => {
+    try {
+      const data = (await response.json()) as { message?: string };
+      return data?.message || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const loadProductsFromApi = async () => {
     try {
       const response = await fetch('/api/products', { cache: 'no-store' });
@@ -43,6 +52,55 @@ function AdminDashboardContent() {
     } catch {
       setProducts(PRODUCTS);
     }
+  };
+
+  const loadSiteConfigFromApi = async () => {
+    try {
+      const response = await fetch('/api/site-config', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Error API');
+      const data = (await response.json()) as {
+        offersProducts?: string[];
+        brands?: Brand[];
+        heroSlides?: HeroSlide[];
+      };
+
+      setSelectedOffersProducts(Array.isArray(data.offersProducts) ? data.offersProducts : []);
+      setBrands(Array.isArray(data.brands) && data.brands.length > 0 ? data.brands : DEFAULT_BRANDS);
+      setHeroSlides(
+        Array.isArray(data.heroSlides) && data.heroSlides.length > 0
+          ? data.heroSlides
+          : DEFAULT_HERO_SLIDES
+      );
+    } catch {
+      setSelectedOffersProducts([]);
+      setBrands(DEFAULT_BRANDS);
+      setHeroSlides(DEFAULT_HERO_SLIDES);
+    }
+  };
+
+  const saveSiteConfig = async (patch: {
+    offersProducts?: string[];
+    brands?: Brand[];
+    heroSlides?: HeroSlide[];
+  }) => {
+    const response = await fetch('/api/site-config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    if (!response.ok) {
+      alert('No se pudo guardar la configuraciÃ³n');
+      return false;
+    }
+    const data = (await response.json()) as {
+      offersProducts: string[];
+      brands: Brand[];
+      heroSlides: HeroSlide[];
+    };
+    setSelectedOffersProducts(data.offersProducts);
+    setBrands(data.brands);
+    setHeroSlides(data.heroSlides);
+    return true;
   };
 
   useEffect(() => {
@@ -55,47 +113,7 @@ function AdminDashboardContent() {
   useEffect(() => {
     if (isMounted) {
       void loadProductsFromApi();
-
-      // Cargar ofertas seleccionadas
-      const savedOffers = localStorage.getItem('offersProducts');
-      if (savedOffers) {
-        try {
-          setSelectedOffersProducts(JSON.parse(savedOffers));
-        } catch (e) {
-          setSelectedOffersProducts([]);
-        }
-      }
-
-      // Cargar marcas
-      const savedBrands = localStorage.getItem('brands');
-      if (savedBrands) {
-        try {
-          setBrands(JSON.parse(savedBrands));
-        } catch (e) {
-          setBrands(DEFAULT_BRANDS);
-          localStorage.setItem('brands', JSON.stringify(DEFAULT_BRANDS));
-        }
-      } else {
-        localStorage.setItem('brands', JSON.stringify(DEFAULT_BRANDS));
-      }
-
-      const savedHeroSlides = localStorage.getItem('heroSlides');
-      if (savedHeroSlides) {
-        try {
-          const parsed = JSON.parse(savedHeroSlides) as HeroSlide[];
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setHeroSlides(parsed);
-          } else {
-            setHeroSlides(DEFAULT_HERO_SLIDES);
-            localStorage.setItem('heroSlides', JSON.stringify(DEFAULT_HERO_SLIDES));
-          }
-        } catch (e) {
-          setHeroSlides(DEFAULT_HERO_SLIDES);
-          localStorage.setItem('heroSlides', JSON.stringify(DEFAULT_HERO_SLIDES));
-        }
-      } else {
-        localStorage.setItem('heroSlides', JSON.stringify(DEFAULT_HERO_SLIDES));
-      }
+      void loadSiteConfigFromApi();
 
       setCategories(getCategories());
     }
@@ -105,7 +123,12 @@ function AdminDashboardContent() {
     e.preventDefault();
     if (!formData.name) return;
 
-    const mainImage = productImages[0] || formData.image || 'https://images.unsplash.com/photo-1574895617837-7e16022e5ecb?w=500&h=500&fit=crop';
+    const fallbackImage =
+      formData.image ||
+      'https://images.unsplash.com/photo-1574895617837-7e16022e5ecb?w=500&h=500&fit=crop';
+    const selectedImages =
+      productImages.length > 0 ? productImages.slice(0, 2) : [fallbackImage];
+    const mainImage = selectedImages[0];
 
     const newProduct: Product = {
       id: Date.now().toString(),
@@ -113,7 +136,8 @@ function AdminDashboardContent() {
       description: formData.description || '',
       category: formData.category || 'Otros',
       image: mainImage,
-      images: [mainImage],
+      model3dEmbedUrl: formData.model3dEmbedUrl || undefined,
+      images: selectedImages,
       specifications: formData.specifications || [],
       youtubeId: formData.youtubeId || 'dQw4w9WgXcQ',
       inStock: formData.inStock !== false,
@@ -126,26 +150,34 @@ function AdminDashboardContent() {
       body: JSON.stringify(newProduct),
     });
     if (!response.ok) {
-      alert('No se pudo crear el producto');
+      alert(await getApiErrorMessage(response, 'No se pudo crear el producto'));
       return;
     }
     await loadProductsFromApi();
     setFormData({});
     setProductImages([]);
     setShowAddForm(false);
-    alert('Producto añadido exitosamente');
+    alert('Producto aÃ±adido exitosamente');
   };
 
   const handleUpdateProduct = async (id: string, e: React.FormEvent) => {
     e.preventDefault();
     const current = products.find((p) => p.id === id);
     if (!current) return;
-    const mainImage = productImages[0] || formData.image || current.image;
+    const existingImages =
+      current.images && current.images.length > 0 ? current.images.slice(0, 2) : [current.image];
+    const selectedImages =
+      productImages.length > 0
+        ? productImages.slice(0, 2)
+        : formData.image
+        ? [formData.image]
+        : existingImages;
+    const mainImage = selectedImages[0] || current.image;
     const payload: Product = {
       ...current,
       ...formData,
       image: mainImage,
-      images: [mainImage],
+      images: selectedImages,
     };
     const response = await fetch(`/api/products/${id}`, {
       method: 'PUT',
@@ -153,7 +185,7 @@ function AdminDashboardContent() {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      alert('No se pudo actualizar el producto');
+      alert(await getApiErrorMessage(response, 'No se pudo actualizar el producto'));
       return;
     }
     await loadProductsFromApi();
@@ -164,28 +196,27 @@ function AdminDashboardContent() {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+    if (confirm('Â¿EstÃ¡s seguro de que deseas eliminar este producto?')) {
       const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (!response.ok) {
-        alert('No se pudo eliminar el producto');
+        alert(await getApiErrorMessage(response, 'No se pudo eliminar el producto'));
         return;
       }
       await loadProductsFromApi();
     }
   };
 
-  const handleToggleOfferProduct = (productId: string) => {
+  const handleToggleOfferProduct = async (productId: string) => {
     let updated: string[];
     if (selectedOffersProducts.includes(productId)) {
       updated = selectedOffersProducts.filter((id) => id !== productId);
     } else {
       updated = [...selectedOffersProducts, productId];
     }
-    setSelectedOffersProducts(updated);
-    localStorage.setItem('offersProducts', JSON.stringify(updated));
+    await saveSiteConfig({ offersProducts: updated });
   };
 
-  const handleAddBrand = () => {
+  const handleAddBrand = async () => {
     if (!newBrandName.trim() || !newBrandLogo.trim()) {
       alert('Por favor completa el nombre y logo de la marca');
       return;
@@ -198,31 +229,28 @@ function AdminDashboardContent() {
     };
 
     const updatedBrands = [...brands, newBrand];
-    setBrands(updatedBrands);
-    localStorage.setItem('brands', JSON.stringify(updatedBrands));
+    const ok = await saveSiteConfig({ brands: updatedBrands });
+    if (!ok) return;
     setNewBrandName('');
     setNewBrandLogo('');
     alert('Marca agregada exitosamente');
   };
 
-  const handleDeleteBrand = (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar esta marca?')) {
+  const handleDeleteBrand = async (id: string) => {
+    if (confirm('Â¿EstÃ¡s seguro de que deseas eliminar esta marca?')) {
       const updatedBrands = brands.filter((b) => b.id !== id);
-      setBrands(updatedBrands);
-      localStorage.setItem('brands', JSON.stringify(updatedBrands));
+      await saveSiteConfig({ brands: updatedBrands });
     }
   };
 
-  const saveHeroSlides = (updatedSlides: HeroSlide[]) => {
-    try {
-      localStorage.setItem('heroSlides', JSON.stringify(updatedSlides));
-      setHeroSlides(updatedSlides);
-    } catch (error) {
+  const saveHeroSlides = async (updatedSlides: HeroSlide[]) => {
+    const ok = await saveSiteConfig({ heroSlides: updatedSlides });
+    if (!ok) {
       alert('No se pudieron guardar los slides del hero. Prueba con imágenes más livianas.');
     }
   };
 
-  const handleAddHeroSlidesFromUpload = () => {
+  const handleAddHeroSlidesFromUpload = async () => {
     if (heroUploadImages.length === 0) {
       alert('Selecciona al menos una imagen');
       return;
@@ -237,14 +265,14 @@ function AdminDashboardContent() {
     }));
 
     const updated = [...heroSlides, ...newSlides].slice(0, 5);
-    saveHeroSlides(updated);
+    await saveHeroSlides(updated);
     setHeroUploadImages([]);
     alert('Slides del hero actualizados');
   };
 
-  const handleCreateHeroSlide = () => {
+  const handleCreateHeroSlide = async () => {
     if (heroSlides.length >= 5) {
-      alert('Máximo 5 slides');
+      alert('MÃ¡ximo 5 slides');
       return;
     }
 
@@ -252,25 +280,25 @@ function AdminDashboardContent() {
       id: `${Date.now()}-new`,
       url: '/placeholder.jpg',
       badge: 'Nueva etiqueta',
-      title: 'Nuevo título',
-      description: 'Nueva descripción',
+      title: 'Nuevo tÃ­tulo',
+      description: 'Nueva descripciÃ³n',
     };
 
-    saveHeroSlides([...heroSlides, newSlide]);
+    await saveHeroSlides([...heroSlides, newSlide]);
   };
 
-  const handleDeleteHeroSlide = (id: string) => {
+  const handleDeleteHeroSlide = async (id: string) => {
     if (heroSlides.length <= 1) {
       alert('Debe existir al menos un slide en el hero');
       return;
     }
     const updated = heroSlides.filter((slide) => slide.id !== id);
-    saveHeroSlides(updated);
+    await saveHeroSlides(updated);
   };
 
-  const handleUpdateHeroSlide = (id: string, field: 'badge' | 'title' | 'description' | 'url', value: string) => {
+  const handleUpdateHeroSlide = async (id: string, field: 'badge' | 'title' | 'description' | 'url', value: string) => {
     const updated = heroSlides.map((slide) => (slide.id === id ? { ...slide, [field]: value } : slide));
-    saveHeroSlides(updated);
+    await saveHeroSlides(updated);
   };
 
   const handleUpdateHeroSlideImageFile = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,7 +325,7 @@ function AdminDashboardContent() {
   };
 
   const handleDeleteCategory = (category: string) => {
-    if (confirm(`¿Deseas eliminar la categoría "${category}"?`)) {
+    if (confirm(`Â¿Deseas eliminar la categorÃ­a "${category}"?`)) {
       const updated = removeCategory(category);
       setCategories(updated);
     }
@@ -325,7 +353,7 @@ function AdminDashboardContent() {
             className="rounded-b-none"
           >
             <Folder className="w-4 h-4 mr-2" />
-            Categorías
+            CategorÃ­as
           </Button>
           <Button
             variant={activeTab === 'hero' ? 'default' : 'ghost'}
@@ -356,12 +384,13 @@ function AdminDashboardContent() {
         {/* Tab: Productos */}
         {activeTab === 'productos' && (
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Productos</h1>
+            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Productos</h1>
             <Button
               onClick={() => {
                 setShowAddForm(!showAddForm);
                 setEditingId(null);
                 setFormData({});
+                setProductImages([]);
               }}
               className="bg-secondary hover:bg-secondary/90"
             >
@@ -395,13 +424,13 @@ function AdminDashboardContent() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-2">Categoría</label>
+                    <label className="block text-sm font-semibold mb-2">CategorÃ­a</label>
                     <select
                       value={formData.category || ''}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
                     >
-                      <option value="">Seleccionar categoría</option>
+                      <option value="">Seleccionar categorÃ­a</option>
                       {categories.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
@@ -411,12 +440,12 @@ function AdminDashboardContent() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-2">Descripción</label>
+                    <label className="block text-sm font-semibold mb-2">DescripciÃ³n</label>
                     <textarea
                       value={formData.description || ''}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
-                      placeholder="Descripción del producto"
+                      placeholder="DescripciÃ³n del producto"
                       rows={3}
                     />
                   </div>
@@ -425,7 +454,7 @@ function AdminDashboardContent() {
                     <ImageUploader
                       images={productImages}
                       onImagesChange={setProductImages}
-                      maxImages={5}
+                      maxImages={2}
                     />
                   </div>
 
@@ -437,6 +466,17 @@ function AdminDashboardContent() {
                       onChange={(e) => setFormData({ ...formData, youtubeId: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
                       placeholder="dQw4w9WgXcQ"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">URL embebible 3D (opcional)</label>
+                    <input
+                      type="text"
+                      value={formData.model3dEmbedUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, model3dEmbedUrl: e.target.value })}
+                      className="w-full px-3 py-2 border border-input rounded"
+                      placeholder="https://sketchfab.com/models/.../embed"
                     />
                   </div>
 
@@ -532,6 +572,11 @@ function AdminDashboardContent() {
                           onClick={() => {
                             setEditingId(product.id);
                             setFormData(product);
+                            setProductImages(
+                              product.images && product.images.length > 0
+                                ? product.images.slice(0, 2)
+                                : [product.image]
+                            );
                             setShowAddForm(false);
                           }}
                         >
@@ -553,17 +598,17 @@ function AdminDashboardContent() {
           </div>
         )}
 
-        {/* Tab: Categorías */}
+        {/* Tab: CategorÃ­as */}
         {activeTab === 'categorias' && (
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Categorías</h1>
+            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de CategorÃ­as</h1>
             <div className="flex items-center justify-between mb-8">
               <Button
                 onClick={() => setShowCategoryForm(!showCategoryForm)}
                 className="bg-secondary hover:bg-secondary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {showCategoryForm ? 'Cancelar' : 'Nueva Categoría'}
+                {showCategoryForm ? 'Cancelar' : 'Nueva CategorÃ­a'}
               </Button>
             </div>
 
@@ -574,13 +619,13 @@ function AdminDashboardContent() {
                   <form onSubmit={handleAddCategory} className="space-y-4">
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Nombre de la Categoría</label>
+                        <label className="block text-sm font-semibold mb-2">Nombre de la CategorÃ­a</label>
                         <input
                           type="text"
                           value={newCategory}
                           onChange={(e) => setNewCategory(e.target.value)}
                           className="w-full px-3 py-2 border border-input rounded"
-                          placeholder="Nombre de la categoría"
+                          placeholder="Nombre de la categorÃ­a"
                           required
                         />
                       </div>
@@ -588,7 +633,7 @@ function AdminDashboardContent() {
 
                     <div className="flex gap-2">
                       <Button type="submit" className="bg-primary hover:bg-primary/90">
-                        Crear Categoría
+                        Crear CategorÃ­a
                       </Button>
                       <Button
                         type="button"
@@ -606,7 +651,7 @@ function AdminDashboardContent() {
             {/* Categories List */}
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-primary">
-                Total de categorías: {categories.length}
+                Total de categorÃ­as: {categories.length}
               </h2>
 
               <div className="grid gap-4">
@@ -639,9 +684,9 @@ function AdminDashboardContent() {
         {/* Tab: Hero */}
         {activeTab === 'hero' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Hero Principal</h1>
+            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Hero Principal</h1>
             <p className="text-muted-foreground">
-              Administra imágenes de fondo y frases del carrusel principal (máximo 5).
+              Administra imÃ¡genes de fondo y frases del carrusel principal (mÃ¡ximo 5).
             </p>
 
             <div className="flex justify-end">
@@ -668,7 +713,7 @@ function AdminDashboardContent() {
                   className="w-full mt-4 bg-primary hover:bg-primary/90"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Agregar Imágenes al Hero
+                  Agregar ImÃ¡genes al Hero
                 </Button>
               </CardContent>
             </Card>
@@ -717,7 +762,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Título</label>
+                      <label className="block text-sm font-semibold mb-2">TÃ­tulo</label>
                       <input
                         type="text"
                         value={slide.title}
@@ -727,7 +772,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Descripción</label>
+                      <label className="block text-sm font-semibold mb-2">DescripciÃ³n</label>
                       <textarea
                         value={slide.description}
                         onChange={(e) => handleUpdateHeroSlide(slide.id, 'description', e.target.value)}
@@ -755,9 +800,9 @@ function AdminDashboardContent() {
         {/* Tab: Gestionar Ofertas */}
         {activeTab === 'ofertas' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Productos en Oferta</h1>
+            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Productos en Oferta</h1>
             <p className="text-muted-foreground">
-              Selecciona los productos que deseas mostrar en la sección de ofertas. Estos aparecerán en el carrusel principal.
+              Selecciona los productos que deseas mostrar en la secciÃ³n de ofertas. Estos aparecerÃ¡n en el carrusel principal.
             </p>
 
             <div className="grid gap-3">
@@ -790,7 +835,7 @@ function AdminDashboardContent() {
                         <h3 className="font-bold text-foreground">{product.name}</h3>
                         <p className="text-sm text-muted-foreground">{product.category}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {product.inStock ? '✓ En Stock' : '✗ Agotado'}
+                          {product.inStock ? 'âœ“ En Stock' : 'âœ— Agotado'}
                         </p>
                       </div>
 
@@ -822,7 +867,7 @@ function AdminDashboardContent() {
         {/* Tab: Marcas */}
         {activeTab === 'marcas' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Marcas</h1>
+            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Marcas</h1>
 
             {/* Add Brand Form */}
             <Card className="border-2 border-primary">
@@ -901,4 +946,7 @@ export default function AdminPage() {
     </AuthProvider>
   );
 }
+
+
+
 

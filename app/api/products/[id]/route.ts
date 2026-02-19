@@ -33,7 +33,10 @@ export async function PUT(
     }
     return NextResponse.json(updated);
   } catch (error) {
-    return NextResponse.json({ message: 'Error al actualizar producto' }, { status: 500 });
+    console.error('PUT /api/products/[id] failed:', error);
+    const message =
+      error instanceof Error ? error.message : 'Error al actualizar producto';
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
 

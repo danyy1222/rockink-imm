@@ -47,7 +47,8 @@ export function ImageUploader({ images, onImagesChange, maxImages = 5 }: ImageUp
     });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.currentTarget.files;
+    const input = e.currentTarget;
+    const files = input.files;
     if (!files) return;
 
     setIsLoading(true);
@@ -70,7 +71,7 @@ export function ImageUploader({ images, onImagesChange, maxImages = 5 }: ImageUp
       setIsLoading(false);
     }
 
-    e.currentTarget.value = '';
+    input.value = '';
   };
 
   const handleRemoveImage = (index: number) => {

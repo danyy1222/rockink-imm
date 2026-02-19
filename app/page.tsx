@@ -16,62 +16,52 @@ function HomeContent() {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
-  const loadHomepageDataFromStorage = () => {
-    const loadProducts = async () => {
-      try {
-        const response = await fetch('/api/products', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Error API');
-        const data = (await response.json()) as Product[];
-        setAllProducts(data);
-      } catch (e) {
+  const loadHomepageData = async () => {
+    try {
+      const [productsRes, configRes] = await Promise.all([
+        fetch('/api/products', { cache: 'no-store' }),
+        fetch('/api/site-config', { cache: 'no-store' }),
+      ]);
+
+      if (productsRes.ok) {
+        const products = (await productsRes.json()) as Product[];
+        setAllProducts(products);
+      } else {
         setAllProducts(PRODUCTS);
       }
-    };
-    void loadProducts();
 
-    // Cargar ofertas seleccionadas desde localStorage
-    const savedOffers = localStorage.getItem('offersProducts');
-    if (savedOffers) {
-      try {
-        setSelectedOffersIds(JSON.parse(savedOffers));
-      } catch (e) {
+      if (configRes.ok) {
+        const config = (await configRes.json()) as {
+          offersProducts?: string[];
+          brands?: Brand[];
+          heroSlides?: HeroSlide[];
+        };
+        setSelectedOffersIds(Array.isArray(config.offersProducts) ? config.offersProducts : []);
+        setBrands(Array.isArray(config.brands) && config.brands.length > 0 ? config.brands : DEFAULT_BRANDS);
+        setHeroSlides(
+          Array.isArray(config.heroSlides) && config.heroSlides.length > 0
+            ? config.heroSlides
+            : DEFAULT_HERO_SLIDES
+        );
+      } else {
         setSelectedOffersIds([]);
-      }
-    }
-
-    // Cargar marcas desde localStorage
-    const savedBrands = localStorage.getItem('brands');
-    if (savedBrands) {
-      try {
-        setBrands(JSON.parse(savedBrands));
-      } catch (e) {
         setBrands(DEFAULT_BRANDS);
-      }
-    }
-
-    // Cargar hero slides desde localStorage
-    const savedHeroSlides = localStorage.getItem('heroSlides');
-    if (savedHeroSlides) {
-      try {
-        const parsed = JSON.parse(savedHeroSlides) as HeroSlide[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setHeroSlides(parsed);
-        } else {
-          setHeroSlides(DEFAULT_HERO_SLIDES);
-        }
-      } catch (e) {
         setHeroSlides(DEFAULT_HERO_SLIDES);
       }
+    } catch (e) {
+      setAllProducts(PRODUCTS);
+      setSelectedOffersIds([]);
+      setBrands(DEFAULT_BRANDS);
+      setHeroSlides(DEFAULT_HERO_SLIDES);
     }
-
   };
 
   useEffect(() => {
-    loadHomepageDataFromStorage();
+    void loadHomepageData();
 
     // Sincronizar cambios hechos en otras pestañas/ventanas y al volver a foco
-    const handleStorage = () => loadHomepageDataFromStorage();
-    const handleFocus = () => loadHomepageDataFromStorage();
+    const handleStorage = () => void loadHomepageData();
+    const handleFocus = () => void loadHomepageData();
     window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', handleFocus);
 
@@ -106,7 +96,7 @@ function HomeContent() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative isolate min-h-screen flex items-center justify-center overflow-hidden pt-20 px-4 md:px-8">
+      <section className="relative isolate min-h-screen flex items-center justify-center overflow-hidden pt-20 px-4 sm:px-6 md:px-8">
         <div className="absolute inset-0 z-0 pointer-events-none">
           {heroSlides.map((slide, idx) => (
             <div
@@ -118,7 +108,7 @@ function HomeContent() {
                 backgroundImage: `url(${slide.url})`,
                 backgroundSize: 'cover',
                 backgroundPosition: '50% 50%',
-                filter: 'brightness(0.82) saturate(1.05) blur(1px)',
+                filter: 'brightness(0.82) saturate(1.05)',
                 transform: 'scale(1.02)',
               }}
             />
@@ -126,9 +116,9 @@ function HomeContent() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/25 to-black/45" />
         </div>
 
-        <div className="max-w-6xl mx-auto relative z-10 text-center bg-[#0f2a1e]/88 backdrop-blur-sm rounded-2xl px-6 py-10 md:px-10 md:py-14 border border-white/20 shadow-2xl">
-          <div className="mb-8 inline-block">
-            <div className="px-6 py-3 bg-white/10 border border-white/20 rounded-full">
+        <div className="max-w-6xl mx-auto relative z-10 text-center px-4 py-8 sm:px-6 sm:py-10 md:px-10 md:py-14">
+          <div className="mb-6 sm:mb-8 inline-block">
+            <div className="px-4 py-2 sm:px-6 sm:py-3 bg-white/10 border border-white/20 rounded-full">
               <span className="text-white font-semibold text-sm">{currentHeroSlide.badge}</span>
             </div>
           </div>
@@ -137,36 +127,36 @@ function HomeContent() {
             {currentHeroSlide.title}
           </h1>
 
-          <p className="text-2xl md:text-3xl text-white/90 max-w-4xl mx-auto mb-12 leading-relaxed font-light [text-shadow:0_2px_16px_rgba(0,0,0,0.35)]">
+          <p className="text-lg sm:text-xl md:text-3xl text-white/90 max-w-4xl mx-auto mb-8 sm:mb-12 leading-relaxed font-light [text-shadow:0_2px_16px_rgba(0,0,0,0.35)]">
             {currentHeroSlide.description}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-10 sm:mb-16">
             <Link href="#products" className="w-full sm:w-auto">
-              <Button className="premium-button w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 text-lg">
+              <Button className="premium-button w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg">
                 Ver Ofertas
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/store" className="w-full sm:w-auto">
-              <Button variant="outline" className="premium-button w-full sm:w-auto border-2 border-white/40 text-white hover:bg-white/10 text-lg bg-transparent">
+              <Button variant="outline" className="premium-button w-full sm:w-auto border-2 border-white/40 text-white hover:bg-white/10 text-base sm:text-lg bg-transparent">
                 Ver Tienda Completa
               </Button>
             </Link>
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-8 mt-20 pt-20 border-t border-white/20">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-10 sm:mt-20 pt-10 sm:pt-20 border-t border-white/20">
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">1000+</div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">1000+</div>
               <p className="text-white/90 font-medium">Productos</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">5000+</div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">5000+</div>
               <p className="text-white/90 font-medium">Clientes Felices</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+              <div className="text-3xl sm:text-4xl font-bold text-primary mb-2">24/7</div>
               <p className="text-white/90 font-medium">Disponible</p>
             </div>
           </div>
@@ -187,23 +177,23 @@ function HomeContent() {
       </section>
 
       {/* Offers Carousel Section */}
-      <section className="relative py-20 px-4 md:px-8 overflow-hidden" id="products">
+      <section className="relative py-16 sm:py-20 px-4 sm:px-6 md:px-8 overflow-hidden" id="products">
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95 -z-10" />
         
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">Ofertas en Carrusel</h2>
-            <p className="text-xl text-muted-foreground">Los mejores productos con descuentos especiales</p>
+          <div className="text-center mb-10 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4 sm:mb-6">Ofertas en Carrusel</h2>
+            <p className="text-base sm:text-xl text-muted-foreground">Los mejores productos con descuentos especiales</p>
           </div>
           <OffersCarousel products={productsEnOferta} />
         </div>
       </section>
 
       {/* Brands Section */}
-      <section className="py-32 px-4 md:px-8 bg-muted/50">
+      <section className="py-20 sm:py-24 md:py-32 px-4 sm:px-6 md:px-8 bg-muted/50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6">Marcas que Trabajan con Nosotros</h2>
+          <div className="text-center mb-12 sm:mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4 sm:mb-6">Marcas que Trabajan con Nosotros</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Alianzas estratégicas con las mejores marcas del sector agrícola</p>
           </div>
           
@@ -224,14 +214,14 @@ function HomeContent() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-4 md:px-8 bg-gradient-to-r from-primary via-secondary to-accent relative overflow-hidden">
+      <section className="py-20 sm:py-24 md:py-32 px-4 sm:px-6 md:px-8 bg-gradient-to-r from-primary via-secondary to-accent relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-8 leading-tight">Estamos Listos para Ayudarte</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-primary-foreground mb-6 sm:mb-8 leading-tight">Estamos Listos para Ayudarte</h2>
           <p className="text-xl md:text-2xl text-primary-foreground/90 mb-12">Únete a miles de agricultores que confían en AgroTienda para sus necesidades.</p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -250,10 +240,46 @@ function HomeContent() {
         </div>
       </section>
 
+      {/* Contact Section */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-background border-t border-border/40">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">Contáctate con Nosotros</h2>
+          <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10">
+            Síguenos en redes sociales para novedades, promociones y nuevos productos.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://www.facebook.com/rockinkperu"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Facebook
+            </a>
+            <a
+              href="https://www.instagram.com/rockink_imm/"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-pink-600 text-white font-semibold hover:bg-pink-700 transition-colors"
+            >
+              Instagram
+            </a>
+            <a
+              href="https://www.tiktok.com/@rockinkimm"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full px-6 py-3 bg-black text-white font-semibold hover:bg-black/85 transition-colors"
+            >
+              TikTok
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-foreground text-primary-foreground py-16 px-4 md:px-8">
+      <footer className="bg-foreground text-primary-foreground py-12 sm:py-16 px-4 sm:px-6 md:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-5 gap-12 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 sm:gap-12 mb-12 sm:mb-16">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logoempresa-fN6jkO5szXaxcekSEWi36RJj1HHx0Q.png" alt="Rockink IMM" className="w-8 h-8" />
@@ -294,11 +320,29 @@ function HomeContent() {
               <p className="text-gray-400 text-sm mb-2">soporte@agrotienda.pe</p>
               <p className="text-gray-400 text-sm mb-4">+51 949 478 966</p>
               <div className="flex gap-3">
-                <a href="#" className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition">
-                  <span className="text-xs">f</span>
+                <a
+                  href="https://www.facebook.com/rockinkperu"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"
+                >
+                  <span className="text-xs">FB</span>
                 </a>
-                <a href="#" className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition">
-                  <span className="text-xs">t</span>
+                <a
+                  href="https://www.instagram.com/rockink_imm/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"
+                >
+                  <span className="text-xs">IG</span>
+                </a>
+                <a
+                  href="https://www.tiktok.com/@rockinkimm"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"
+                >
+                  <span className="text-xs">TT</span>
                 </a>
               </div>
             </div>
@@ -321,3 +365,4 @@ export default function Home() {
     </CartProvider>
   );
 }
+

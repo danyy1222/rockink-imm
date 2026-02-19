@@ -7,6 +7,7 @@ type ProductRow = {
   description: string;
   category: string;
   image: string;
+  model_3d_embed_url: string | null;
   images: string[] | null;
   specifications: string[] | null;
   youtube_id: string;
@@ -28,6 +29,7 @@ function toProduct(row: ProductRow): Product {
     description: row.description,
     category: row.category,
     image: row.image,
+    model3dEmbedUrl: row.model_3d_embed_url || undefined,
     images: row.images && row.images.length > 0 ? row.images : [row.image],
     specifications: row.specifications || [],
     youtubeId: row.youtube_id,
@@ -36,19 +38,27 @@ function toProduct(row: ProductRow): Product {
   };
 }
 
-function toRow(product: Partial<Product>) {
+function toRow(product: Partial<Product>, options?: { includeId?: boolean }) {
   const row = {
     id: product.id,
     name: product.name,
     description: product.description,
     category: product.category,
     image: product.image,
+    model_3d_embed_url:
+      product.model3dEmbedUrl === ''
+        ? null
+        : product.model3dEmbedUrl,
     images: product.images,
     specifications: product.specifications,
     youtube_id: product.youtubeId,
     in_stock: product.inStock,
     in_offer: product.inOffer,
   } as Record<string, unknown>;
+
+  if (!options?.includeId) {
+    delete row.id;
+  }
 
   Object.keys(row).forEach((key) => {
     if (row[key] === undefined) {
@@ -124,10 +134,11 @@ export async function createProduct(input: Product): Promise<Product> {
   const response = await supabaseFetch('/rest/v1/products', {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
-    body: JSON.stringify(toRow(prepared)),
+    body: JSON.stringify(toRow(prepared, { includeId: true })),
   });
   if (!response.ok) {
-    throw new Error('No se pudo crear producto en Supabase');
+    const details = await response.text();
+    throw new Error(`No se pudo crear producto en Supabase: ${details}`);
   }
 
   const rows = (await response.json()) as ProductRow[];
@@ -159,13 +170,35 @@ export async function updateProduct(id: string, input: Partial<Product>): Promis
     return next;
   }
 
-  const response = await supabaseFetch(`/rest/v1/products?id=eq.${encodeURIComponent(id)}`, {
+  const patchUrl = `/rest/v1/products?id=eq.${encodeURIComponent(id)}`;
+  const rowPayload = toRow(input, { includeId: false });
+
+  let response = await supabaseFetch(patchUrl, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
-    body: JSON.stringify(toRow(input)),
+    body: JSON.stringify(rowPayload),
   });
+
   if (!response.ok) {
-    throw new Error('No se pudo actualizar producto en Supabase');
+    const details = await response.text();
+
+    // Backward-compatible retry when DB still lacks the optional 3D column.
+    if (
+      details.includes('model_3d_embed_url') &&
+      Object.prototype.hasOwnProperty.call(rowPayload, 'model_3d_embed_url')
+    ) {
+      delete rowPayload.model_3d_embed_url;
+      response = await supabaseFetch(patchUrl, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify(rowPayload),
+      });
+    }
+
+    if (!response.ok) {
+      const retryDetails = await response.text();
+      throw new Error(`No se pudo actualizar producto en Supabase: ${retryDetails || details}`);
+    }
   }
 
   const rows = (await response.json()) as ProductRow[];
