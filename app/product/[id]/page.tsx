@@ -19,6 +19,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
   const [added, setAdded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [openZoom, setOpenZoom] = useState(false);
+  const [activeMedia, setActiveMedia] = useState<'video' | 'model3d'>('video');
   const { addItem } = useCart();
 
   const product = allProducts.find((p) => p.id === productId);
@@ -112,6 +113,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
 
   const currentImage = images[activeImageIndex] || '/placeholder.svg';
   const model3dUrl = product.model3dEmbedUrl?.trim() || '';
+  const has3dModel = Boolean(model3dUrl);
   const isGlbModel = /\.glb(\?|$)/i.test(model3dUrl);
   const waPhone = PHONE_NUMBERS.tier1.replace(/\D/g, '');
   const waText = encodeURIComponent(
@@ -239,64 +241,140 @@ function ProductDetailContent({ productId }: { productId: string }) {
 
       <section className="bg-card py-12 px-4 mt-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-bold text-primary mb-6">Conoce el producto</h2>
-          <div className="aspect-video bg-black rounded-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${product.youtubeId}`}
-              title="Video del producto"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            />
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-primary">Centro Multimedia</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Cambia entre video y modelo 3D en un solo bloque.
+            </p>
           </div>
+
+          <Card className="border-border/60">
+            <CardContent className="p-3 sm:p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveMedia('video')}
+                  className={`rounded-lg px-4 py-3 text-left border transition ${
+                    activeMedia === 'video'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <p className="font-semibold text-sm">Video</p>
+                  <p className="text-xs text-muted-foreground">Demostración del producto</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => has3dModel && setActiveMedia('model3d')}
+                  disabled={!has3dModel}
+                  className={`rounded-lg px-4 py-3 text-left border transition ${
+                    activeMedia === 'model3d'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  } ${!has3dModel ? 'opacity-60 cursor-not-allowed' : ''}`}
+                >
+                  <p className="font-semibold text-sm">Vista 3D</p>
+                  <p className="text-xs text-muted-foreground">
+                    {has3dModel ? 'Interactúa con el modelo' : 'No disponible'}
+                  </p>
+                </button>
+              </div>
+
+              {activeMedia === 'video' && (
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${product.youtubeId}`}
+                    title="Video del producto"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              )}
+
+              {activeMedia === 'model3d' && has3dModel && (
+                <div className="space-y-3">
+                  {isGlbModel ? (
+                    <>
+                      <Script
+                        type="module"
+                        src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+                        strategy="afterInteractive"
+                      />
+                      <div className="w-full h-[460px] rounded-lg overflow-hidden bg-black/80 border border-border">
+                        {createElement('model-viewer', {
+                          src: model3dUrl,
+                          alt: `Modelo 3D de ${product.name}`,
+                          poster: product.image,
+                          class: 'w-full h-full',
+                          style: { width: '100%', height: '100%' },
+                          'camera-controls': true,
+                          'auto-rotate': true,
+                          'auto-rotate-delay': '1200',
+                          'shadow-intensity': '1',
+                          'interaction-prompt': 'auto',
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={model3dUrl}
+                        title="Modelo 3D del producto"
+                        frameBorder="0"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeMedia === 'model3d' && !has3dModel && (
+                <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
+                  Este producto todavia no tiene modelo 3D configurado.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveMedia('video')}
+                  className={`relative h-28 rounded-lg overflow-hidden border text-left ${
+                    activeMedia === 'video' ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Image src={product.image || '/placeholder.svg'} alt="Miniatura de video" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/45 flex items-end p-2">
+                    <span className="text-white text-xs font-semibold">Video de YouTube</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => has3dModel && setActiveMedia('model3d')}
+                  disabled={!has3dModel}
+                  className={`relative h-28 rounded-lg overflow-hidden border text-left ${
+                    activeMedia === 'model3d' ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
+                  } ${!has3dModel ? 'opacity-55 cursor-not-allowed' : ''}`}
+                >
+                  <Image src={product.image || '/placeholder.svg'} alt="Miniatura de vista 3D" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/45 flex items-end p-2">
+                    <span className="text-white text-xs font-semibold">
+                      {has3dModel ? 'Modelo 3D' : '3D no disponible'}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
-
-      {model3dUrl && (
-        <section className="bg-card py-12 px-4 mt-8">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-primary mb-6">Vista 3D del producto</h2>
-
-            {isGlbModel ? (
-              <div className="space-y-4">
-                <Script
-                  type="module"
-                  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-                  strategy="afterInteractive"
-                />
-                <div className="w-full h-[420px] rounded-lg overflow-hidden bg-black/70 border border-border">
-                  {createElement('model-viewer', {
-                    src: model3dUrl,
-                    alt: `Modelo 3D de ${product.name}`,
-                    poster: product.image,
-                    class: 'w-full h-full',
-                    style: { width: '100%', height: '100%' },
-                    'camera-controls': true,
-                    'auto-rotate': true,
-                    'shadow-intensity': '1',
-                    'interaction-prompt': 'auto',
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={model3dUrl}
-                  title="Modelo 3D del producto"
-                  frameBorder="0"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-6">

@@ -3,41 +3,26 @@
 import Link from "next/link"
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { OffersCarousel } from '@/components/offers-carousel';
 import { Button } from '@/components/ui/button';
-import { PRODUCTS, Product, Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
+import { Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
 import { normalizeBrandName } from '@/lib/product-brand';
 import { CartProvider } from '@/lib/cart-context';
 import { ArrowRight } from 'lucide-react';
 
 function HomeContent() {
-  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
-  const [selectedOffersIds, setSelectedOffersIds] = useState<string[]>([]);
   const [brands, setBrands] = useState<Brand[]>(DEFAULT_BRANDS);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   const loadHomepageData = async () => {
     try {
-      const [productsRes, configRes] = await Promise.all([
-        fetch('/api/products', { cache: 'no-store' }),
-        fetch('/api/site-config', { cache: 'no-store' }),
-      ]);
-
-      if (productsRes.ok) {
-        const products = (await productsRes.json()) as Product[];
-        setAllProducts(products);
-      } else {
-        setAllProducts(PRODUCTS);
-      }
+      const configRes = await fetch('/api/site-config', { cache: 'no-store' });
 
       if (configRes.ok) {
         const config = (await configRes.json()) as {
-          offersProducts?: string[];
           brands?: Brand[];
           heroSlides?: HeroSlide[];
         };
-        setSelectedOffersIds(Array.isArray(config.offersProducts) ? config.offersProducts : []);
         setBrands(Array.isArray(config.brands) && config.brands.length > 0 ? config.brands : DEFAULT_BRANDS);
         setHeroSlides(
           Array.isArray(config.heroSlides) && config.heroSlides.length > 0
@@ -45,13 +30,10 @@ function HomeContent() {
             : DEFAULT_HERO_SLIDES
         );
       } else {
-        setSelectedOffersIds([]);
         setBrands(DEFAULT_BRANDS);
         setHeroSlides(DEFAULT_HERO_SLIDES);
       }
     } catch (e) {
-      setAllProducts(PRODUCTS);
-      setSelectedOffersIds([]);
       setBrands(DEFAULT_BRANDS);
       setHeroSlides(DEFAULT_HERO_SLIDES);
     }
@@ -86,10 +68,6 @@ function HomeContent() {
     }
   }, [currentHeroIndex, heroSlides.length]);
 
-  // Usar productos seleccionados en ofertas, si no hay, usar los con inOffer
-  const productsEnOferta = selectedOffersIds.length > 0
-    ? allProducts.filter((p) => selectedOffersIds.includes(p.id))
-    : allProducts.filter((p) => p.inOffer);
   const currentHeroSlide = heroSlides[currentHeroIndex] || DEFAULT_HERO_SLIDES[0];
 
   return (
@@ -130,9 +108,9 @@ function HomeContent() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-10 sm:mb-16">
-            <Link href="#products" className="w-full sm:w-auto">
+            <Link href="/store" className="w-full sm:w-auto">
               <Button className="premium-button w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg">
-                Ver Ofertas
+                Ver Tienda
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -174,19 +152,6 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Offers Carousel Section */}
-      <section className="relative py-16 sm:py-20 px-4 sm:px-6 md:px-8 overflow-hidden" id="products">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/90 to-background/95 -z-10" />
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground mb-4 sm:mb-6">Ofertas en Carrusel</h2>
-            <p className="text-base sm:text-xl text-muted-foreground">Los mejores productos con descuentos especiales</p>
-          </div>
-          <OffersCarousel products={productsEnOferta} />
-        </div>
-      </section>
-
       {/* Brands Section */}
       <section className="py-20 sm:py-24 md:py-32 px-4 sm:px-6 md:px-8 bg-muted/50">
         <div className="max-w-7xl mx-auto">
@@ -224,9 +189,9 @@ function HomeContent() {
           <p className="text-xl md:text-2xl text-primary-foreground/90 mb-12">Únete a miles de agricultores que confían en Rockink IMM para sus necesidades.</p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link href="#products">
+            <Link href="/store">
               <Button className="premium-button w-full sm:w-auto bg-primary-foreground text-primary hover:bg-white text-lg font-bold">
-                Explorar Ahora
+                Ir a Tienda
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -254,7 +219,7 @@ function HomeContent() {
             <div>
               <h4 className="font-semibold mb-4 text-white">Productos</h4>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#products" className="hover:text-primary transition">Catálogo Completo</a></li>
+                <li><a href="/store" className="hover:text-primary transition">Catálogo Completo</a></li>
                 <li><a href="#categories" className="hover:text-primary transition">Categorías</a></li>
                 <li><a href="/about" className="hover:text-primary transition">Sobre Nosotros</a></li>
               </ul>
