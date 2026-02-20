@@ -10,7 +10,8 @@ import { CartProvider } from '@/lib/cart-context';
 import { ArrowLeft, ShoppingCart, Check, Download, MessageCircle, Sparkles, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { use, useEffect, useMemo, useState } from 'react';
+import Script from 'next/script';
+import { createElement, use, useEffect, useMemo, useState } from 'react';
 
 function ProductDetailContent({ productId }: { productId: string }) {
   const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
@@ -110,6 +111,8 @@ function ProductDetailContent({ productId }: { productId: string }) {
   }
 
   const currentImage = images[activeImageIndex] || '/placeholder.svg';
+  const model3dUrl = product.model3dEmbedUrl?.trim() || '';
+  const isGlbModel = /\.glb(\?|$)/i.test(model3dUrl);
   const waPhone = PHONE_NUMBERS.tier1.replace(/\D/g, '');
   const waText = encodeURIComponent(
     `Hola Rockink IMM, quiero informacion de este producto: ${product.name} (ID: ${product.id})`
@@ -251,6 +254,49 @@ function ProductDetailContent({ productId }: { productId: string }) {
           </div>
         </div>
       </section>
+
+      {model3dUrl && (
+        <section className="bg-card py-12 px-4 mt-8">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-2xl font-bold text-primary mb-6">Vista 3D del producto</h2>
+
+            {isGlbModel ? (
+              <div className="space-y-4">
+                <Script
+                  type="module"
+                  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+                  strategy="afterInteractive"
+                />
+                <div className="w-full h-[420px] rounded-lg overflow-hidden bg-black/70 border border-border">
+                  {createElement('model-viewer', {
+                    src: model3dUrl,
+                    alt: `Modelo 3D de ${product.name}`,
+                    poster: product.image,
+                    class: 'w-full h-full',
+                    style: { width: '100%', height: '100%' },
+                    'camera-controls': true,
+                    'auto-rotate': true,
+                    'shadow-intensity': '1',
+                    'interaction-prompt': 'auto',
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={model3dUrl}
+                  title="Modelo 3D del producto"
+                  frameBorder="0"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-6">

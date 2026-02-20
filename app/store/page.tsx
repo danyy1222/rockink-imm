@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/header';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { PRODUCTS, Product } from '@/lib/data';
+import { getCategories, mergeCategoriesWithProducts } from '@/lib/categories';
 import { getProductBrand, normalizeBrandName, productMatchesBrand } from '@/lib/product-brand';
 import { CartProvider, useCart } from '@/lib/cart-context';
 import { ArrowLeft, Search, ShoppingCart } from 'lucide-react';
@@ -56,7 +57,10 @@ function StoreContent() {
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  const categories = Array.from(new Set(allProducts.map((p) => p.category)));
+  const categories = useMemo(
+    () => mergeCategoriesWithProducts(allProducts.map((p) => p.category), getCategories()),
+    [allProducts]
+  );
 
   const filteredProducts = allProducts.filter((p) => {
     if (selectedCategory && p.category !== selectedCategory) return false;

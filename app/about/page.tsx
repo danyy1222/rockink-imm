@@ -268,11 +268,6 @@ function AboutContent() {
                 Explorar Productos Ahora
               </Button>
             </Link>
-            <Link href="/admin/login">
-              <Button variant="outline" className="border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/15 px-10 py-7 text-lg font-bold bg-transparent/10 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-                Acceso a Administración
-              </Button>
-            </Link>
           </div>
 
           <p className="text-primary-foreground/80 mt-8 text-lg">¿Preguntas? Contáctanos: +51 962838329</p>

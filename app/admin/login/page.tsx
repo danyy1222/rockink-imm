@@ -96,12 +96,6 @@ function LoginContent() {
                 </div>
               )}
 
-              <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-xs text-blue-800">
-                <p className="font-semibold mb-1">Credenciales de demostración:</p>
-                <p>Usuario: <strong>admin</strong></p>
-                <p>Contraseña: <strong>admin</strong></p>
-              </div>
-
               <Button
                 type="submit"
                 disabled={loading}

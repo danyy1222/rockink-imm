@@ -9,7 +9,7 @@ import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRODUCTS, Product, Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
-import { getCategories, addCategory, removeCategory } from '@/lib/categories';
+import { getCategories, addCategory, removeCategory, mergeCategoriesWithProducts } from '@/lib/categories';
 import { Edit2, Trash2, Plus, Folder, Check, Award, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ImageUploader } from '@/components/image-uploader';
@@ -89,7 +89,7 @@ function AdminDashboardContent() {
       body: JSON.stringify(patch),
     });
     if (!response.ok) {
-      alert('No se pudo guardar la configuraciÃ³n');
+      alert('No se pudo guardar la configuración');
       return false;
     }
     const data = (await response.json()) as {
@@ -115,9 +115,17 @@ function AdminDashboardContent() {
       void loadProductsFromApi();
       void loadSiteConfigFromApi();
 
-      setCategories(getCategories());
+      setCategories(mergeCategoriesWithProducts([], getCategories()));
     }
   }, [isMounted]);
+
+  useEffect(() => {
+    const merged = mergeCategoriesWithProducts(
+      products.map((p) => p.category),
+      getCategories()
+    );
+    setCategories(merged);
+  }, [products]);
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +165,7 @@ function AdminDashboardContent() {
     setFormData({});
     setProductImages([]);
     setShowAddForm(false);
-    alert('Producto aÃ±adido exitosamente');
+    alert('Producto añadido exitosamente');
   };
 
   const handleUpdateProduct = async (id: string, e: React.FormEvent) => {
@@ -196,7 +204,7 @@ function AdminDashboardContent() {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('Â¿EstÃ¡s seguro de que deseas eliminar este producto?')) {
+    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
       const response = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         alert(await getApiErrorMessage(response, 'No se pudo eliminar el producto'));
@@ -237,7 +245,7 @@ function AdminDashboardContent() {
   };
 
   const handleDeleteBrand = async (id: string) => {
-    if (confirm('Â¿EstÃ¡s seguro de que deseas eliminar esta marca?')) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta marca?')) {
       const updatedBrands = brands.filter((b) => b.id !== id);
       await saveSiteConfig({ brands: updatedBrands });
     }
@@ -272,7 +280,7 @@ function AdminDashboardContent() {
 
   const handleCreateHeroSlide = async () => {
     if (heroSlides.length >= 5) {
-      alert('MÃ¡ximo 5 slides');
+      alert('Máximo 5 slides');
       return;
     }
 
@@ -280,8 +288,8 @@ function AdminDashboardContent() {
       id: `${Date.now()}-new`,
       url: '/placeholder.jpg',
       badge: 'Nueva etiqueta',
-      title: 'Nuevo tÃ­tulo',
-      description: 'Nueva descripciÃ³n',
+      title: 'Nuevo título',
+      description: 'Nueva descripción',
     };
 
     await saveHeroSlides([...heroSlides, newSlide]);
@@ -319,15 +327,15 @@ function AdminDashboardContent() {
     if (!newCategory.trim()) return;
 
     const updated = addCategory(newCategory.trim());
-    setCategories(updated);
+    setCategories(mergeCategoriesWithProducts(products.map((p) => p.category), updated));
     setNewCategory('');
     setShowCategoryForm(false);
   };
 
   const handleDeleteCategory = (category: string) => {
-    if (confirm(`Â¿Deseas eliminar la categorÃ­a "${category}"?`)) {
+    if (confirm(`¿Deseas eliminar la categoría "${category}"?`)) {
       const updated = removeCategory(category);
-      setCategories(updated);
+      setCategories(mergeCategoriesWithProducts(products.map((p) => p.category), updated));
     }
   };
 
@@ -353,7 +361,7 @@ function AdminDashboardContent() {
             className="rounded-b-none"
           >
             <Folder className="w-4 h-4 mr-2" />
-            CategorÃ­as
+            Categorías
           </Button>
           <Button
             variant={activeTab === 'hero' ? 'default' : 'ghost'}
@@ -384,7 +392,7 @@ function AdminDashboardContent() {
         {/* Tab: Productos */}
         {activeTab === 'productos' && (
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Productos</h1>
+            <h1 className="text-3xl font-bold text-primary">Gestión de Productos</h1>
             <Button
               onClick={() => {
                 setShowAddForm(!showAddForm);
@@ -424,13 +432,13 @@ function AdminDashboardContent() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-2">CategorÃ­a</label>
+                    <label className="block text-sm font-semibold mb-2">Categoría</label>
                     <select
                       value={formData.category || ''}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
                     >
-                      <option value="">Seleccionar categorÃ­a</option>
+                      <option value="">Seleccionar categoría</option>
                       {categories.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}
@@ -440,12 +448,12 @@ function AdminDashboardContent() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold mb-2">DescripciÃ³n</label>
+                    <label className="block text-sm font-semibold mb-2">Descripción</label>
                     <textarea
                       value={formData.description || ''}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
-                      placeholder="DescripciÃ³n del producto"
+                      placeholder="Descripción del producto"
                       rows={3}
                     />
                   </div>
@@ -598,17 +606,17 @@ function AdminDashboardContent() {
           </div>
         )}
 
-        {/* Tab: CategorÃ­as */}
+        {/* Tab: Categorías */}
         {activeTab === 'categorias' && (
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de CategorÃ­as</h1>
+            <h1 className="text-3xl font-bold text-primary">Gestión de Categorías</h1>
             <div className="flex items-center justify-between mb-8">
               <Button
                 onClick={() => setShowCategoryForm(!showCategoryForm)}
                 className="bg-secondary hover:bg-secondary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {showCategoryForm ? 'Cancelar' : 'Nueva CategorÃ­a'}
+                {showCategoryForm ? 'Cancelar' : 'Nueva Categoría'}
               </Button>
             </div>
 
@@ -619,13 +627,13 @@ function AdminDashboardContent() {
                   <form onSubmit={handleAddCategory} className="space-y-4">
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold mb-2">Nombre de la CategorÃ­a</label>
+                        <label className="block text-sm font-semibold mb-2">Nombre de la Categoría</label>
                         <input
                           type="text"
                           value={newCategory}
                           onChange={(e) => setNewCategory(e.target.value)}
                           className="w-full px-3 py-2 border border-input rounded"
-                          placeholder="Nombre de la categorÃ­a"
+                          placeholder="Nombre de la categoría"
                           required
                         />
                       </div>
@@ -633,7 +641,7 @@ function AdminDashboardContent() {
 
                     <div className="flex gap-2">
                       <Button type="submit" className="bg-primary hover:bg-primary/90">
-                        Crear CategorÃ­a
+                        Crear Categoría
                       </Button>
                       <Button
                         type="button"
@@ -651,7 +659,7 @@ function AdminDashboardContent() {
             {/* Categories List */}
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-primary">
-                Total de categorÃ­as: {categories.length}
+                Total de categorías: {categories.length}
               </h2>
 
               <div className="grid gap-4">
@@ -684,9 +692,9 @@ function AdminDashboardContent() {
         {/* Tab: Hero */}
         {activeTab === 'hero' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Hero Principal</h1>
+            <h1 className="text-3xl font-bold text-primary">Gestión de Hero Principal</h1>
             <p className="text-muted-foreground">
-              Administra imÃ¡genes de fondo y frases del carrusel principal (mÃ¡ximo 5).
+              Administra imágenes de fondo y frases del carrusel principal (máximo 5).
             </p>
 
             <div className="flex justify-end">
@@ -713,7 +721,7 @@ function AdminDashboardContent() {
                   className="w-full mt-4 bg-primary hover:bg-primary/90"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Agregar ImÃ¡genes al Hero
+                  Agregar Imágenes al Hero
                 </Button>
               </CardContent>
             </Card>
@@ -762,7 +770,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-2">TÃ­tulo</label>
+                      <label className="block text-sm font-semibold mb-2">Título</label>
                       <input
                         type="text"
                         value={slide.title}
@@ -772,7 +780,7 @@ function AdminDashboardContent() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold mb-2">DescripciÃ³n</label>
+                      <label className="block text-sm font-semibold mb-2">Descripción</label>
                       <textarea
                         value={slide.description}
                         onChange={(e) => handleUpdateHeroSlide(slide.id, 'description', e.target.value)}
@@ -800,9 +808,9 @@ function AdminDashboardContent() {
         {/* Tab: Gestionar Ofertas */}
         {activeTab === 'ofertas' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Productos en Oferta</h1>
+            <h1 className="text-3xl font-bold text-primary">Gestión de Productos en Oferta</h1>
             <p className="text-muted-foreground">
-              Selecciona los productos que deseas mostrar en la secciÃ³n de ofertas. Estos aparecerÃ¡n en el carrusel principal.
+              Selecciona los productos que deseas mostrar en la sección de ofertas. Estos aparecerán en el carrusel principal.
             </p>
 
             <div className="grid gap-3">
@@ -867,7 +875,7 @@ function AdminDashboardContent() {
         {/* Tab: Marcas */}
         {activeTab === 'marcas' && (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold text-primary">GestiÃ³n de Marcas</h1>
+            <h1 className="text-3xl font-bold text-primary">Gestión de Marcas</h1>
 
             {/* Add Brand Form */}
             <Card className="border-2 border-primary">
@@ -946,6 +954,8 @@ export default function AdminPage() {
     </AuthProvider>
   );
 }
+
+
 
 
 

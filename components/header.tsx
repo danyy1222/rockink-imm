@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/cart-context';
-import { ShoppingCart, Leaf, Menu, LogOut, Lock } from 'lucide-react';
+import { ShoppingCart, Leaf, Menu, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 interface HeaderProps {
@@ -64,11 +64,6 @@ export function Header({ isAdmin = false }: HeaderProps) {
                         {totalItems}
                       </span>
                     )}
-                  </Button>
-                </Link>
-                <Link href="/admin/login">
-                  <Button variant="ghost" size="sm" className="text-foreground/60 hover:text-primary transition-all duration-200">
-                    <Lock className="w-4 h-4" />
                   </Button>
                 </Link>
               </>
