@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
 import { normalizeBrandName } from '@/lib/product-brand';
 import { CartProvider } from '@/lib/cart-context';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Truck, ShieldCheck, Sparkles, MessagesSquare, Instagram, Facebook } from 'lucide-react';
 
 function HomeContent() {
   const [brands, setBrands] = useState<Brand[]>(DEFAULT_BRANDS);
@@ -69,6 +69,51 @@ function HomeContent() {
   }, [currentHeroIndex, heroSlides.length]);
 
   const currentHeroSlide = heroSlides[currentHeroIndex] || DEFAULT_HERO_SLIDES[0];
+  const homeBenefits = [
+    {
+      title: 'Asesoria personalizada',
+      description: 'Te ayudamos a elegir productos correctos para tu necesidad real.',
+      icon: MessagesSquare,
+    },
+    {
+      title: 'Calidad validada',
+      description: 'Trabajamos con marcas y lineas probadas en campo.',
+      icon: ShieldCheck,
+    },
+    {
+      title: 'Atencion agil',
+      description: 'Canal rapido por WhatsApp para consultas y seguimiento.',
+      icon: Truck,
+    },
+  ];
+  const steps = [
+    { title: 'Explora el catalogo', description: 'Filtra por categoria, marca o texto en segundos.' },
+    { title: 'Compara y revisa', description: 'Mira fotos, video y especificaciones del producto.' },
+    { title: 'Contacta y cierra', description: 'Coordina por WhatsApp con atencion directa.' },
+  ];
+  const socialCards = [
+    {
+      name: 'Facebook',
+      handle: '/rockinkperu',
+      href: 'https://www.facebook.com/rockinkperu',
+      icon: Facebook,
+      color: 'from-blue-600 to-blue-500',
+    },
+    {
+      name: 'Instagram',
+      handle: '@rockink_imm',
+      href: 'https://www.instagram.com/rockink_imm/',
+      icon: Instagram,
+      color: 'from-rose-500 to-orange-400',
+    },
+    {
+      name: 'TikTok',
+      handle: '@rockinkimm',
+      href: 'https://www.tiktok.com/@rockinkimm',
+      icon: null,
+      color: 'from-zinc-900 to-zinc-700',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,6 +222,88 @@ function HomeContent() {
         </div>
       </section>
 
+      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Una experiencia mas simple y rapida</h2>
+            <p className="text-muted-foreground text-base sm:text-lg">Todo el flujo pensado para que encuentres lo que necesitas sin perder tiempo.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {homeBenefits.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-border bg-card p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 120}ms` }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-muted/40">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between gap-4 mb-8 sm:mb-10 flex-wrap">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Como comprar en Rockink IMM</h2>
+            <Sparkles className="w-7 h-7 text-primary animate-float" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {steps.map((step, idx) => (
+              <div key={step.title} className="rounded-2xl bg-background border border-border p-6 relative overflow-hidden">
+                <div className="text-4xl font-black text-primary/20 absolute -top-2 -right-2">{`0${idx + 1}`}</div>
+                <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20 px-4 sm:px-6 md:px-8 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">Siguenos en redes sociales</h2>
+            <p className="text-muted-foreground">Novedades, lanzamientos y contenido del dia a dia en campo.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {socialCards.map((social) => (
+              <a
+                key={social.name}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group rounded-2xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300"
+              >
+                <div className={`h-2 bg-gradient-to-r ${social.color}`} />
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-bold text-foreground">{social.name}</p>
+                    {social.icon ? (
+                      <social.icon className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                    ) : (
+                      <span className="text-xs px-2 py-1 rounded-full bg-foreground text-background">TT</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">{social.handle}</p>
+                  <span className="text-sm font-semibold text-primary inline-flex items-center gap-1">
+                    Visitar
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 sm:py-24 md:py-32 px-4 sm:px-6 md:px-8 bg-gradient-to-r from-primary via-secondary to-accent relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -210,7 +337,7 @@ function HomeContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 sm:gap-12 mb-12 sm:mb-16">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logoempresa-fN6jkO5szXaxcekSEWi36RJj1HHx0Q.png" alt="Rockink IMM" className="w-8 h-8" />
+                <img src="/logoempresa.png" alt="Rockink IMM" className="w-8 h-8" />
                 <span className="font-bold text-xl text-white">Rockink IMM</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">Soluciones agrícolas premium transformando la producción con productos de calidad e innovación continua.</p>

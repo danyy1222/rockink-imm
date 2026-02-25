@@ -14,6 +14,8 @@ async function ensureDbFile() {
     const initial = PRODUCTS.map((p) => ({
       ...p,
       images: p.images && p.images.length > 0 ? p.images : [p.image],
+      stockQuantity:
+        typeof p.stockQuantity === 'number' ? p.stockQuantity : p.inStock ? 1 : 0,
     }));
     await fs.writeFile(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
   }
@@ -26,6 +28,10 @@ export async function readProducts(): Promise<Product[]> {
   return parsed.map((p) => ({
     ...p,
     images: p.images && p.images.length > 0 ? p.images : [p.image],
+    stockQuantity:
+      typeof p.stockQuantity === 'number' ? p.stockQuantity : p.inStock ? 1 : 0,
+    inStock:
+      typeof p.stockQuantity === 'number' ? p.stockQuantity > 0 : p.inStock,
   }));
 }
 

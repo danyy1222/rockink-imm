@@ -12,6 +12,7 @@ type ProductRow = {
   specifications: string[] | null;
   youtube_id: string;
   in_stock: boolean;
+  stock_quantity: number | null;
   in_offer: boolean;
 };
 
@@ -23,6 +24,12 @@ function hasSupabaseConfig() {
 }
 
 function toProduct(row: ProductRow): Product {
+  const stockQuantity =
+    typeof row.stock_quantity === 'number'
+      ? Math.max(0, Math.floor(row.stock_quantity))
+      : row.in_stock
+      ? 1
+      : 0;
   return {
     id: row.id,
     name: row.name,
@@ -33,12 +40,22 @@ function toProduct(row: ProductRow): Product {
     images: row.images && row.images.length > 0 ? row.images : [row.image],
     specifications: row.specifications || [],
     youtubeId: row.youtube_id,
-    inStock: row.in_stock,
+    inStock: stockQuantity > 0,
+    stockQuantity,
     inOffer: row.in_offer,
   };
 }
 
 function toRow(product: Partial<Product>, options?: { includeId?: boolean }) {
+  const stockQuantity =
+    typeof product.stockQuantity === 'number'
+      ? Math.max(0, Math.floor(product.stockQuantity))
+      : undefined;
+  const inStock =
+    typeof stockQuantity === 'number'
+      ? stockQuantity > 0
+      : product.inStock;
+
   const row = {
     id: product.id,
     name: product.name,
@@ -52,7 +69,8 @@ function toRow(product: Partial<Product>, options?: { includeId?: boolean }) {
     images: product.images,
     specifications: product.specifications,
     youtube_id: product.youtubeId,
-    in_stock: product.inStock,
+    in_stock: inStock,
+    stock_quantity: stockQuantity,
     in_offer: product.inOffer,
   } as Record<string, unknown>;
 
@@ -116,12 +134,19 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 export async function createProduct(input: Product): Promise<Product> {
+  const normalizedStock =
+    typeof input.stockQuantity === 'number'
+      ? Math.max(0, Math.floor(input.stockQuantity))
+      : input.inStock !== false
+      ? 1
+      : 0;
   const prepared: Product = {
     ...input,
     id: input.id || Date.now().toString(),
     images: input.images && input.images.length > 0 ? input.images : [input.image],
     specifications: input.specifications || [],
-    inStock: input.inStock !== false,
+    stockQuantity: normalizedStock,
+    inStock: normalizedStock > 0,
     inOffer: input.inOffer || false,
   };
 
@@ -165,6 +190,10 @@ export async function updateProduct(id: string, input: Partial<Product>): Promis
           : current.images,
       specifications: input.specifications || current.specifications,
     };
+    if (typeof input.stockQuantity === 'number') {
+      next.stockQuantity = Math.max(0, Math.floor(input.stockQuantity));
+      next.inStock = next.stockQuantity > 0;
+    }
     products[index] = next;
     await writeProducts(products);
     return next;

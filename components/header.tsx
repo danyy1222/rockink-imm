@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/lib/cart-context';
-import { ShoppingCart, Leaf, Menu, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 interface HeaderProps {
@@ -20,7 +20,7 @@ export function Header({ isAdmin = false }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href={isAdmin ? '/admin' : '/'} className="flex items-center gap-2 font-bold text-xl hover:opacity-75 transition-all duration-200 group">
-            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logoempresa-fN6jkO5szXaxcekSEWi36RJj1HHx0Q.png" alt="Rockink IMM" className="w-10 h-10 group-hover:scale-110 transition-transform" />
+            <img src="/logoempresa.png" alt="Rockink IMM" className="w-10 h-10 group-hover:scale-110 transition-transform" />
             <span className="hidden sm:inline text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold">Rockink IMM</span>
           </Link>
 

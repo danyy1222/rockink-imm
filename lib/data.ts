@@ -9,6 +9,7 @@ export interface Product {
   specifications: string[];
   youtubeId: string;
   inStock: boolean;
+  stockQuantity?: number;
   inOffer?: boolean;
 }
 

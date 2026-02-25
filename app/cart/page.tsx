@@ -46,8 +46,6 @@ function CartContent() {
   const categoriesCount = new Set(
     cartProducts.map((cp) => cp.product?.category).filter(Boolean)
   ).size;
-  const inStockCount = cartProducts.filter((cp) => cp.product?.inStock).length;
-  const outStockCount = totalProducts - inStockCount;
 
   const whatsappMessage = encodeURIComponent(
     `Hola, me gustaría ordenar los siguientes productos:\n\n${cartProducts
@@ -106,15 +104,6 @@ function CartContent() {
                         </Link>
                         <p className="text-sm text-muted-foreground mt-1">{cp.product?.category || 'Sin categoría'}</p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              cp.product?.inStock
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}
-                          >
-                            {cp.product?.inStock ? 'En stock' : 'Agotado'}
-                          </span>
                           {cp.product?.specifications?.[0] && (
                             <span className="text-xs text-muted-foreground line-clamp-1">
                               {cp.product.specifications[0]}
@@ -167,10 +156,6 @@ function CartContent() {
                       <p className="font-semibold text-right">{totalItems}</p>
                       <p className="text-muted-foreground">Categorías:</p>
                       <p className="font-semibold text-right">{categoriesCount}</p>
-                      <p className="text-muted-foreground">Disponibles:</p>
-                      <p className="font-semibold text-right text-green-700">{inStockCount}</p>
-                      <p className="text-muted-foreground">Agotados:</p>
-                      <p className="font-semibold text-right text-red-700">{outStockCount}</p>
                     </div>
                   </div>
 

@@ -191,21 +191,9 @@ function ProductDetailContent({ productId }: { productId: string }) {
                   ))}
                 </div>
 
-                <div>
-                  {product.inStock ? (
-                    <span className="text-green-600 font-semibold flex items-center gap-2">
-                      <Check className="w-5 h-5" />
-                      En stock
-                    </span>
-                  ) : (
-                    <span className="text-red-600 font-semibold">Agotado</span>
-                  )}
-                </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     onClick={handleAddCart}
-                    disabled={!product.inStock}
                     className="bg-primary hover:bg-primary/90 text-base py-6"
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />

@@ -14,6 +14,9 @@ import { Edit2, Trash2, Plus, Folder, Check, Award, Image as ImageIcon } from 'l
 import Image from 'next/image';
 import { ImageUploader } from '@/components/image-uploader';
 
+const MAX_PRODUCT_IMAGES = 5;
+const LOW_STOCK_THRESHOLD = 5;
+
 function AdminDashboardContent() {
   const { isLoggedIn, isMounted } = useAuth();
   const router = useRouter();
@@ -135,8 +138,15 @@ function AdminDashboardContent() {
       formData.image ||
       'https://images.unsplash.com/photo-1574895617837-7e16022e5ecb?w=500&h=500&fit=crop';
     const selectedImages =
-      productImages.length > 0 ? productImages.slice(0, 2) : [fallbackImage];
+      productImages.length > 0 ? productImages.slice(0, MAX_PRODUCT_IMAGES) : [fallbackImage];
     const mainImage = selectedImages[0];
+
+    const stockQuantity =
+      typeof formData.stockQuantity === 'number'
+        ? Math.max(0, Math.floor(formData.stockQuantity))
+        : Number(formData.stockQuantity ?? 0) > 0
+        ? Math.max(0, Math.floor(Number(formData.stockQuantity)))
+        : 0;
 
     const newProduct: Product = {
       id: Date.now().toString(),
@@ -148,7 +158,8 @@ function AdminDashboardContent() {
       images: selectedImages,
       specifications: formData.specifications || [],
       youtubeId: formData.youtubeId || 'dQw4w9WgXcQ',
-      inStock: formData.inStock !== false,
+      stockQuantity,
+      inStock: stockQuantity > 0,
       inOffer: formData.inOffer || false,
     };
 
@@ -173,19 +184,34 @@ function AdminDashboardContent() {
     const current = products.find((p) => p.id === id);
     if (!current) return;
     const existingImages =
-      current.images && current.images.length > 0 ? current.images.slice(0, 2) : [current.image];
+      current.images && current.images.length > 0
+        ? current.images.slice(0, MAX_PRODUCT_IMAGES)
+        : [current.image];
     const selectedImages =
       productImages.length > 0
-        ? productImages.slice(0, 2)
+        ? productImages.slice(0, MAX_PRODUCT_IMAGES)
         : formData.image
         ? [formData.image]
         : existingImages;
     const mainImage = selectedImages[0] || current.image;
+    const nextStockQuantity =
+      typeof formData.stockQuantity === 'number'
+        ? Math.max(0, Math.floor(formData.stockQuantity))
+        : formData.stockQuantity !== undefined
+        ? Math.max(0, Math.floor(Number(formData.stockQuantity) || 0))
+        : typeof current.stockQuantity === 'number'
+        ? current.stockQuantity
+        : current.inStock
+        ? 1
+        : 0;
+
     const payload: Product = {
       ...current,
       ...formData,
       image: mainImage,
       images: selectedImages,
+      stockQuantity: nextStockQuantity,
+      inStock: nextStockQuantity > 0,
     };
     const response = await fetch(`/api/products/${id}`, {
       method: 'PUT',
@@ -462,7 +488,21 @@ function AdminDashboardContent() {
                     <ImageUploader
                       images={productImages}
                       onImagesChange={setProductImages}
-                      maxImages={2}
+                      maxImages={MAX_PRODUCT_IMAGES}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Stock actual</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.stockQuantity ?? 0}
+                      onChange={(e) =>
+                        setFormData({ ...formData, stockQuantity: Math.max(0, Number(e.target.value) || 0) })
+                      }
+                      className="w-full px-3 py-2 border border-input rounded"
+                      placeholder="0"
                     />
                   </div>
 
@@ -492,8 +532,16 @@ function AdminDashboardContent() {
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.inStock !== false}
-                        onChange={(e) => setFormData({ ...formData, inStock: e.target.checked })}
+                        checked={(formData.stockQuantity ?? (formData.inStock !== false ? 1 : 0)) > 0}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            inStock: e.target.checked,
+                            stockQuantity: e.target.checked
+                              ? Math.max(1, Number(formData.stockQuantity ?? 1))
+                              : 0,
+                          })
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm font-semibold">En Stock</span>
@@ -563,6 +611,14 @@ function AdminDashboardContent() {
                           {product.description}
                         </p>
                         <div className="flex gap-2">
+                          <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                            Stock: {product.stockQuantity ?? (product.inStock ? 1 : 0)}
+                          </span>
+                          {(product.stockQuantity ?? (product.inStock ? 1 : 0)) <= LOW_STOCK_THRESHOLD && (
+                            <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">
+                              Stock bajo
+                            </span>
+                          )}
                           <span className={`text-xs px-2 py-1 rounded ${
                             product.inStock
                               ? 'bg-green-100 text-green-700'
@@ -582,7 +638,7 @@ function AdminDashboardContent() {
                             setFormData(product);
                             setProductImages(
                               product.images && product.images.length > 0
-                                ? product.images.slice(0, 2)
+                                ? product.images.slice(0, MAX_PRODUCT_IMAGES)
                                 : [product.image]
                             );
                             setShowAddForm(false);

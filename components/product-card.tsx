@@ -36,7 +36,7 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
   return (
     <Card
       onClick={() => router.push(`/product/${product.id}`)}
-      className="overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20 cursor-pointer"
+      className="overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20 cursor-pointer transition-all duration-300"
     >
       <div className="relative w-full h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden group">
         <Image
@@ -51,6 +51,11 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
           <Tag className="w-3 h-3" />
           {product.category}
         </div>
+        {product.inOffer && (
+          <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1 rounded-lg text-[11px] font-bold shadow-lg">
+            Oferta
+          </div>
+        )}
 
         {images.length > 1 && (
           <>
@@ -79,11 +84,11 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
           </>
         )}
 
-        {!product.inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">Agotado</span>
+        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="rounded-md bg-black/55 text-white text-xs px-3 py-2 backdrop-blur-sm">
+            Toca para ver más detalles
           </div>
-        )}
+        </div>
       </div>
 
       <CardContent className="p-5 flex flex-col flex-grow">
@@ -105,7 +110,7 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
               }}
               className="text-sm"
             >
-              Vista rapida
+              Vista rápida
             </Button>
             <Button
               onClick={(e) => {
@@ -114,10 +119,9 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
                 onAddedToCart?.(product);
               }}
               className="btn-primary shadow-md text-sm w-full"
-              disabled={!product.inStock}
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
-              Anadir
+              Añadir
             </Button>
           </div>
         </div>

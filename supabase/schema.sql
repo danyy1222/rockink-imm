@@ -9,6 +9,7 @@ create table if not exists public.products (
   specifications text[] not null default '{}',
   youtube_id text not null default 'dQw4w9WgXcQ',
   in_stock boolean not null default true,
+  stock_quantity integer not null default 0,
   in_offer boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -16,6 +17,9 @@ create table if not exists public.products (
 
 alter table public.products
 add column if not exists model_3d_embed_url text;
+
+alter table public.products
+add column if not exists stock_quantity integer not null default 0;
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -48,6 +52,7 @@ insert into public.products (
   specifications,
   youtube_id,
   in_stock,
+  stock_quantity,
   in_offer
 )
 values (
@@ -67,6 +72,7 @@ values (
   ]::text[],
   'dQw4w9WgXcQ',
   true,
+  8,
   true
 )
 on conflict (id) do update
@@ -80,4 +86,5 @@ set
   specifications = excluded.specifications,
   youtube_id = excluded.youtube_id,
   in_stock = excluded.in_stock,
+  stock_quantity = excluded.stock_quantity,
   in_offer = excluded.in_offer;
