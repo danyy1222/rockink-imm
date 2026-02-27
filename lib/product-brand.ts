@@ -1,12 +1,15 @@
 import { Product } from '@/lib/data';
 
 const CATEGORY_TO_BRAND: Record<string, string> = {
-  semillas: 'Lister',
-  fertilizantes: 'CRV',
-  pesticidas: 'Sunway',
-  herramientas: 'Melasty',
-  riego: 'Sunway',
-  estructuras: 'Melasty',
+  ordeño: 'Melasty',
+  ordeno: 'Melasty',
+  reproduccion: 'CRV',
+  criogenia: 'CRV',
+  'identificacion animal': 'Lister',
+  identificacion: 'Lister',
+  instrumental: 'Sunway',
+  repuestos: 'Melasty',
+  equipos: 'Sunway',
   insumos: 'Lister',
 };
 

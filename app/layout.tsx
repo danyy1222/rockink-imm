@@ -4,8 +4,8 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Rockink IMM - Soluciones Agricolas Premium',
-  description: 'Plataforma de venta de productos agropecuarios de calidad premium con ofertas especiales',
+  title: 'Rockink IMM - Ingenieria Ganadera',
+  description: 'Plataforma especializada en ingenieria ganadera, equipos tecnicos e insumos para operaciones pecuarias.',
   generator: 'v0.app',
   icons: {
     icon: '/logoempresa.png',

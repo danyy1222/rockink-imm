@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Product } from '@/lib/data';
 import { useCart } from '@/lib/cart-context';
 import { ShoppingCart, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -19,7 +19,32 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
   const { addItem } = useCart();
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
+
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [currentImageIndex, product.id]);
+  const handleTiltMove = (event: React.MouseEvent<HTMLElement>) => {
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const rotateX = ((y / rect.height) - 0.5) * -9;
+    const rotateY = ((x / rect.width) - 0.5) * 9;
+    el.style.setProperty('--tilt-x', `${rotateX.toFixed(2)}deg`);
+    el.style.setProperty('--tilt-y', `${rotateY.toFixed(2)}deg`);
+    el.style.setProperty('--glow-x', `${(x / rect.width) * 100}%`);
+    el.style.setProperty('--glow-y', `${(y / rect.height) * 100}%`);
+  };
+
+  const handleTiltLeave = (event: React.MouseEvent<HTMLElement>) => {
+    const el = event.currentTarget;
+    el.style.setProperty('--tilt-x', '0deg');
+    el.style.setProperty('--tilt-y', '0deg');
+    el.style.setProperty('--glow-x', '50%');
+    el.style.setProperty('--glow-y', '50%');
+  };
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -36,15 +61,19 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
   return (
     <Card
       onClick={() => router.push(`/product/${product.id}`)}
-      className="overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20 cursor-pointer transition-all duration-300"
+      onMouseMove={handleTiltMove}
+      onMouseLeave={handleTiltLeave}
+      className="interactive-tilt tilt-card overflow-hidden card-hover h-full flex flex-col border border-border/40 shadow-sm hover:shadow-xl hover:border-primary/20 cursor-pointer transition-all duration-300"
     >
-      <div className="relative w-full h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden group">
+      <div className="shader-energy-wrap image-liquid-reveal relative w-full h-52 sm:h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden group">
         <Image
           src={images[currentImageIndex] || '/placeholder.svg'}
           alt={product.name}
           fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          onLoad={() => setImageLoaded(true)}
+          className={`magnetic-image moving-product-image object-cover transition-transform duration-500 ${imageLoaded ? 'is-loaded' : ''}`}
         />
+        <div className={`mosaic-mask ${imageLoaded ? 'is-hidden' : ''}`} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="absolute top-3 right-3 bg-accent text-accent-foreground px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg">
@@ -61,13 +90,13 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
           <>
             <button
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/55 hover:bg-black/70 text-white p-1 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/55 hover:bg-black/70 text-white p-1 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -84,7 +113,7 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
           </>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-6 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-0 opacity-100 sm:translate-y-6 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 transition-all duration-300">
           <div className="rounded-md bg-black/55 text-white text-xs px-3 py-2 backdrop-blur-sm">
             Toca para ver más detalles
           </div>

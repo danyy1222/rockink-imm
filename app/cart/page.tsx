@@ -244,8 +244,8 @@ function CartContent() {
 
       <footer className="bg-primary text-primary-foreground py-8 px-4 mt-12">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="mb-2">© 2026 Rockink IMM - E-commerce Agropecuario</p>
-          <p className="text-sm opacity-75">Productos de calidad para tu campo</p>
+          <p className="mb-2">© 2026 Rockink IMM - Ingenieria Ganadera</p>
+          <p className="text-sm opacity-75">Soluciones tecnicas para operaciones ganaderas</p>
         </div>
       </footer>
     </div>
