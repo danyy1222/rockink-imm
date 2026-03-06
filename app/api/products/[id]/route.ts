@@ -3,6 +3,20 @@ import { getProductById, updateProduct, deleteProduct } from '@/lib/products-rep
 import { Product } from '@/lib/data'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+function jsonNoStore(data: unknown, init?: ResponseInit) {
+  return NextResponse.json(data, {
+    ...init,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      Pragma: 'no-cache',
+      Expires: '0',
+      ...(init?.headers || {}),
+    },
+  })
+}
 
 const ADMIN_COOKIE = 'admin_access_ok'
 
@@ -22,11 +36,11 @@ export async function GET(
     const { id } = await params
     const product = await getProductById(id)
     if (!product) {
-      return NextResponse.json({ message: 'Producto no encontrado' }, { status: 404 })
+      return jsonNoStore({ message: 'Producto no encontrado' }, { status: 404 })
     }
-    return NextResponse.json(product)
+    return jsonNoStore(product)
   } catch {
-    return NextResponse.json({ message: 'Error al leer producto' }, { status: 500 })
+    return jsonNoStore({ message: 'Error al leer producto' }, { status: 500 })
   }
 }
 
@@ -35,7 +49,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    return jsonNoStore({ message: 'Unauthorized' }, { status: 401 })
   }
 
   try {
@@ -43,11 +57,11 @@ export async function PATCH(
     const patch = (await request.json()) as Partial<Product>
     const updated = await updateProduct(id, patch)
     if (!updated) {
-      return NextResponse.json({ message: 'Producto no encontrado' }, { status: 404 })
+      return jsonNoStore({ message: 'Producto no encontrado' }, { status: 404 })
     }
-    return NextResponse.json(updated)
+    return jsonNoStore(updated)
   } catch (error) {
-    return NextResponse.json({ message: 'Error al actualizar producto' }, { status: 500 })
+    return jsonNoStore({ message: 'Error al actualizar producto' }, { status: 500 })
   }
 }
 
@@ -56,17 +70,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    return jsonNoStore({ message: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const { id } = await params
     const ok = await deleteProduct(id)
     if (!ok) {
-      return NextResponse.json({ message: 'Producto no encontrado' }, { status: 404 })
+      return jsonNoStore({ message: 'Producto no encontrado' }, { status: 404 })
     }
-    return NextResponse.json({ success: true })
+    return jsonNoStore({ success: true })
   } catch {
-    return NextResponse.json({ message: 'Error al eliminar producto' }, { status: 500 })
+    return jsonNoStore({ message: 'Error al eliminar producto' }, { status: 500 })
   }
 }

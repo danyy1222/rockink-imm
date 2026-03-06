@@ -3,31 +3,45 @@ import { createProduct, getProducts } from '@/lib/products-repo'
 import { Product } from '@/lib/data'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+function jsonNoStore(data: unknown, init?: ResponseInit) {
+  return NextResponse.json(data, {
+    ...init,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      Pragma: 'no-cache',
+      Expires: '0',
+      ...(init?.headers || {}),
+    },
+  })
+}
 
 export async function GET() {
   try {
     const products = await getProducts()
-    return NextResponse.json(products)
+    return jsonNoStore(products)
   } catch (error) {
-    return NextResponse.json({ message: 'Error al leer productos' }, { status: 500 })
+    return jsonNoStore({ message: 'Error al leer productos' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
     if (!isAuthorized(request)) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      return jsonNoStore({ message: 'Unauthorized' }, { status: 401 })
     }
 
     const body = (await request.json()) as Product
     if (!body?.name) {
-      return NextResponse.json({ message: 'Nombre requerido' }, { status: 400 })
+      return jsonNoStore({ message: 'Nombre requerido' }, { status: 400 })
     }
 
     const created = await createProduct(body)
-    return NextResponse.json(created, { status: 201 })
+    return jsonNoStore(created, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ message: 'Error al crear producto' }, { status: 500 })
+    return jsonNoStore({ message: 'Error al crear producto' }, { status: 500 })
   }
 }
 const ADMIN_COOKIE = 'admin_access_ok'
