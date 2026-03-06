@@ -15,9 +15,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const adminKey = process.env.ADMIN_ACCESS_KEY
-    const headerKey = request.headers.get('x-admin')
-    if (!adminKey || headerKey !== adminKey) {
+    if (!isAuthorized(request)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -27,4 +25,13 @@ export async function PUT(request: Request) {
   } catch (error) {
     return NextResponse.json({ message: 'Error al guardar configuración' }, { status: 500 })
   }
+}
+const ADMIN_COOKIE = 'admin_access_ok'
+
+function isAuthorized(request: Request) {
+  const adminKey = process.env.ADMIN_ACCESS_KEY
+  const headerKey = request.headers.get('x-admin')
+  if (adminKey && headerKey === adminKey) return true
+  const cookieHeader = request.headers.get('cookie') || ''
+  return cookieHeader.split(/; */).some((pair) => pair.startsWith(`${ADMIN_COOKIE}=1`))
 }

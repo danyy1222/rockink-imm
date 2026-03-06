@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
       setIsLoggedIn(true);
       sessionStorage.setItem('adminLoggedIn', 'true');
+      document.cookie = 'admin_access_ok=1; path=/; max-age=43200; samesite=lax';
       return true;
     }
     return false;
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = (): void => {
     setIsLoggedIn(false);
     sessionStorage.removeItem('adminLoggedIn');
+    document.cookie = 'admin_access_ok=; path=/; max-age=0; samesite=lax';
   };
 
   const value: AuthContextType = {

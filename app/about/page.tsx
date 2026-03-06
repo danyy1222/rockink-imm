@@ -1,112 +1,367 @@
-﻿'use client';
+'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { CartProvider } from '@/lib/cart-context';
-import { CheckCircle2, Users, Award, Leaf } from 'lucide-react';
+import {
+  Award,
+  CheckCircle2,
+  Leaf,
+  MapPin,
+  PlayCircle,
+  ShieldCheck,
+  Users,
+  Zap,
+} from 'lucide-react';
+
+type StatKey = 'departamentos' | 'garantia' | 'optimizacion';
+
+const FLOW_STEPS = [
+  {
+    id: 'seleccion',
+    title: 'Seleccion tecnica',
+    desc: 'Evaluamos equipos, repuestos e insumos para el tipo real de operacion.',
+  },
+  {
+    id: 'soporte',
+    title: 'Soporte experto',
+    desc: 'Acompanamiento comercial y tecnico para implementacion con menor friccion.',
+  },
+  {
+    id: 'resultado',
+    title: 'Resultado medible',
+    desc: 'Operacion mas estable, eficiente y lista para escalar.',
+  },
+];
+
+const VALUE_CARDS = [
+  {
+    icon: Award,
+    title: 'Excelencia',
+    desc: 'Calidad consistente y criterio tecnico en cada seleccion.',
+  },
+  {
+    icon: Users,
+    title: 'Confianza',
+    desc: 'Relacion de largo plazo basada en respuesta, cumplimiento y seguimiento.',
+  },
+  {
+    icon: Leaf,
+    title: 'Sostenibilidad',
+    desc: 'Procesos mas eficientes con enfoque operativo responsable.',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'Innovacion',
+    desc: 'Soluciones tecnicas aplicadas con mentalidad de mejora continua.',
+  },
+];
 
 function AboutContent() {
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const [activeFlow, setActiveFlow] = useState('seleccion');
+  const [stats, setStats] = useState<Record<StatKey, number>>({
+    departamentos: 0,
+    garantia: 0,
+    optimizacion: 0,
+  });
+
+  useEffect(() => {
+    const revealElements = Array.from(document.querySelectorAll<HTMLElement>('[data-about-reveal]'));
+    if (revealElements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' }
+    );
+
+    revealElements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const section = statsRef.current;
+    if (!section) return;
+
+    let hasRun = false;
+    const animateValue = (key: StatKey, target: number, duration: number) => {
+      const start = performance.now();
+      const step = (now: number) => {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setStats((prev) => ({ ...prev, [key]: Math.floor(target * eased) }));
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (hasRun) return;
+        if (entries.some((entry) => entry.isIntersecting)) {
+          hasRun = true;
+          animateValue('departamentos', 5, 1200);
+          animateValue('garantia', 100, 1200);
+          animateValue('optimizacion', 18, 1200);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <section className="relative overflow-hidden py-20 md:py-28 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-secondary/5 to-accent/10" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground leading-tight">
-            Sobre <span className="gradient-text">Rockink IMM</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Tu socio confiable en ingenieria ganadera moderna, comprometido con calidad y excelencia operativa.
-          </p>
+      <section className="about-hero-v2 reveal-block is-visible">
+        <div className="about-hero-v2-media">
+          <video
+            className="about-hero-v2-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          >
+            <source src="/videodefondosobrenosotros.mp4" type="video/mp4" />
+          </video>
         </div>
-      </section>
-
-      <section className="py-20 px-4 bg-gradient-to-b from-background via-muted/10 to-background border-b border-border/20">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="inline-block px-4 py-2 mb-6 bg-primary/10 border border-primary/30 rounded-full">
-              <span className="text-primary font-semibold text-sm">Nuestra Razon de Ser</span>
+        <div className="about-hero-v2-overlay" />
+        <div className="about-hero-v2-grid">
+          <div className="about-hero-v2-copy">
+            <div className="about-kicker-pill">
+              <PlayCircle className="h-4 w-4" />
+              <span>Ingenieria ganadera aplicada</span>
             </div>
-            <h2 className="text-5xl font-bold mb-6 text-foreground leading-tight">Ingenieria Ganadera de Precision</h2>
-            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-              En Rockink IMM ayudamos a productores y empresas ganaderas a operar mejor, con tecnologia,
-              equipamiento e insumos tecnicos de alto rendimiento.
+            <h1>Sobre nuestra empresa</h1>
+            <p>
+              Tecnologia, soporte experto y criterio comercial para operaciones
+              ganaderas que necesitan moverse con precision.
             </p>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              Nuestro enfoque combina seleccion tecnica, soporte comercial y acompanamiento para mejorar
-              productividad, bienestar animal y eficiencia operativa.
+            <div className="about-hero-v2-actions">
+              <Link href="/store">
+                <Button className="premium-button about-primary-cta">Explorar catalogo</Button>
+              </Link>
+              <Link href="/contacto">
+                <Button variant="outline" className="premium-button about-secondary-cta">
+                  Agendar asesoria
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="about-hero-v2-panel">
+            <p className="about-panel-kicker">Panel operativo</p>
+            <div className="about-panel-matrix">
+              <div>
+                <strong>24/7</strong>
+                <span>acompanamiento</span>
+              </div>
+              <div>
+                <strong>+5</strong>
+                <span>zonas activas</span>
+              </div>
+              <div>
+                <strong>100%</strong>
+                <span>enfoque consultivo</span>
+              </div>
+              <div>
+                <strong>360</strong>
+                <span>vision operativa</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="about-mission-v2 reveal-block is-visible" data-about-reveal>
+        <div className="about-section-grid">
+          <div className="about-mission-copy">
+            <span className="about-section-label">Nuestra razon de ser</span>
+            <h2>Ingenieria ganadera de precision</h2>
+            <p>
+              En Rockink IMM ayudamos a productores y empresas a operar mejor,
+              con tecnologia, equipamiento e insumos tecnicos de alto
+              rendimiento.
             </p>
-            <Link href="/store">
-              <Button className="btn-primary px-8 py-6 text-lg shadow-lg hover:shadow-xl">Descubre Nuestros Productos</Button>
-            </Link>
+            <p>
+              Nuestro enfoque combina seleccion tecnica, soporte comercial y
+              acompanamiento para mejorar productividad, bienestar animal y
+              eficiencia operativa.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 border border-primary/20">
-              <p className="text-2xl font-bold mb-2">Precision</p>
-              <p className="text-muted-foreground">Seleccion tecnica de productos para resultados consistentes.</p>
-            </div>
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-secondary/15 to-accent/10 border border-secondary/20">
-              <p className="text-2xl font-bold mb-2">Sostenibilidad</p>
-              <p className="text-muted-foreground">Operacion responsable, eficiente y orientada a continuidad.</p>
-            </div>
+          <div className="about-mission-stack">
+            <article className="about-wire-card" data-about-reveal>
+              <span className="about-wire-line" />
+              <h3>Precision</h3>
+              <p>Seleccion tecnica de productos para resultados consistentes.</p>
+            </article>
+            <article className="about-wire-card" data-about-reveal>
+              <span className="about-wire-line" />
+              <h3>Sostenibilidad</h3>
+              <p>Operacion responsable, eficiente y orientada a continuidad.</p>
+            </article>
+            <article className="about-wire-card" data-about-reveal>
+              <span className="about-wire-line" />
+              <h3>Velocidad</h3>
+              <p>Respuesta comercial agil para operaciones que no pueden esperar.</p>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-b from-primary/5 via-background to-secondary/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-foreground">Nuestros Valores Clave</h2>
-            <p className="text-xl text-muted-foreground mt-4">Base tecnica y humana para crecer con nuestros clientes</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-8 rounded-2xl bg-white/80 border border-border/40">
-              <Award className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-xl font-bold mb-3">Excelencia</h3>
-              <p className="text-muted-foreground">Calidad y control en cada linea de producto.</p>
-            </div>
-            <div className="p-8 rounded-2xl bg-white/80 border border-border/40">
-              <Users className="w-8 h-8 text-secondary mb-4" />
-              <h3 className="text-xl font-bold mb-3">Confianza</h3>
-              <p className="text-muted-foreground">Relacion de largo plazo basada en cumplimiento.</p>
-            </div>
-            <div className="p-8 rounded-2xl bg-white/80 border border-border/40">
-              <Leaf className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-xl font-bold mb-3">Sostenibilidad</h3>
-              <p className="text-muted-foreground">Procesos eficientes con enfoque responsable.</p>
-            </div>
-            <div className="p-8 rounded-2xl bg-white/80 border border-border/40">
-              <CheckCircle2 className="w-8 h-8 text-accent mb-4" />
-              <h3 className="text-xl font-bold mb-3">Innovacion</h3>
-              <p className="text-muted-foreground">Mejora continua en tecnologia y servicio.</p>
-            </div>
-          </div>
+      <section className="about-flow-v2 reveal-block is-visible" data-about-reveal>
+        <div className="about-section-head">
+          <span className="about-section-label">Ruta de valor</span>
+          <h2>Como trabajamos contigo</h2>
+        </div>
+        <div className="about-flow-tabs">
+          {FLOW_STEPS.map((step) => (
+            <button
+              key={step.id}
+              type="button"
+              className={activeFlow === step.id ? 'is-active' : ''}
+              onClick={() => setActiveFlow(step.id)}
+            >
+              {step.title}
+            </button>
+          ))}
+        </div>
+        <div className="about-flow-panel">
+          {FLOW_STEPS.map((step) =>
+            step.id === activeFlow ? (
+              <div key={step.id}>
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+              </div>
+            ) : null
+          )}
         </div>
       </section>
 
-      <section className="relative overflow-hidden py-20 px-4 bg-gradient-to-r from-primary via-secondary to-accent">
-        <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
-          <h2 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-6 leading-tight">Transforma tu Operacion Ganadera</h2>
-          <p className="text-2xl text-primary-foreground/95 mb-12">Unete a miles de clientes que trabajan con Rockink IMM.</p>
+      <section className="about-values-v2 reveal-block is-visible" data-about-reveal>
+        <div className="about-section-head dark">
+          <span className="about-section-label">Valores</span>
+          <h2>Nuestros valores clave</h2>
+          <p>Base tecnica y humana para crecer con nuestros clientes.</p>
+        </div>
+        <div className="about-values-grid">
+          {VALUE_CARDS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.title} className="about-value-card-v2" data-about-reveal>
+                <div className="about-value-icon">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.desc}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="about-stats-v2 reveal-block is-visible" ref={statsRef} data-about-reveal>
+        <article>
+          <MapPin className="h-5 w-5" />
+          <strong>{stats.departamentos}+</strong>
+          <span>Departamentos atendidos</span>
+        </article>
+        <article>
+          <ShieldCheck className="h-5 w-5" />
+          <strong>{stats.garantia}%</strong>
+          <span>Garantia tecnica</span>
+        </article>
+        <article>
+          <Zap className="h-5 w-5" />
+          <strong>{stats.optimizacion}%</strong>
+          <span>Optimizacion de procesos</span>
+        </article>
+      </section>
+
+      <section className="about-cta-v2 reveal-block is-visible" data-about-reveal>
+        <div className="about-cta-v2-inner">
+          <h2>Transforma tu operacion ganadera</h2>
+          <p>Activa un flujo comercial y tecnico mas claro para tu negocio.</p>
           <Link href="/store">
-            <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl">
-              Explorar Productos Ahora
-            </Button>
+            <Button className="premium-button about-primary-cta">Explorar productos ahora</Button>
           </Link>
-          <p className="text-primary-foreground/80 mt-8 text-lg">Preguntas: +51 962838329</p>
         </div>
       </section>
 
-      <footer className="bg-gradient-to-b from-primary to-primary/95 text-primary-foreground py-12 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-sm opacity-90">Rockink IMM - Ingenieria Ganadera</p>
-          <p className="text-sm opacity-90 mt-2">© 2026 Rockink IMM. Todos los derechos reservados.</p>
+      <footer className="bg-foreground text-primary-foreground py-12 sm:py-16 px-4 sm:px-6 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 sm:gap-12 mb-12 sm:mb-16">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <img src="/logoempresa.png" alt="Rockink IMM" className="w-8 h-8" />
+                <span className="font-bold text-xl text-white">Rockink IMM</span>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Soluciones de ingenieria ganadera enfocadas en productividad,
+                bienestar animal e innovacion continua.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Productos</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="/store" className="hover:text-primary transition">Catalogo Completo</a></li>
+                <li><a href="/store#categories" className="hover:text-primary transition">Categorias</a></li>
+                <li><a href="/about" className="hover:text-primary transition">Sobre Nosotros</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Soporte</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="/contacto" className="hover:text-primary transition">Centro de Ayuda</a></li>
+                <li><a href="/contacto#faq" className="hover:text-primary transition">Preguntas Frecuentes</a></li>
+                <li><a href="/contacto" className="hover:text-primary transition">Contactanos</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Legal</h4>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="/contacto#privacidad" className="hover:text-primary transition">Privacidad</a></li>
+                <li><a href="/contacto#terminos" className="hover:text-primary transition">Terminos</a></li>
+                <li><a href="/contacto#cookies" className="hover:text-primary transition">Cookies</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4 text-white">Contacto</h4>
+              <p className="text-gray-400 text-sm mb-2">contacto@rockinkimm.com</p>
+              <p className="text-gray-400 text-sm mb-4">+51 962838329</p>
+              <div className="flex gap-3">
+                <a href="https://www.facebook.com/rockinkperu" target="_blank" rel="noreferrer" className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"><span className="text-xs">FB</span></a>
+                <a href="https://www.instagram.com/rockink_imm/" target="_blank" rel="noreferrer" className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"><span className="text-xs">IG</span></a>
+                <a href="https://www.tiktok.com/@rockinkimm" target="_blank" rel="noreferrer" className="w-10 h-10 bg-primary/20 hover:bg-primary rounded-full flex items-center justify-center transition"><span className="text-xs">TT</span></a>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-700 pt-8 text-center">
+            <p className="text-gray-400 text-sm">© 2026 Rockink IMM. Todos los derechos reservados.</p>
+            <p className="text-gray-500 text-xs mt-2">Transformando la ingenieria ganadera con innovacion y calidad</p>
+          </div>
         </div>
       </footer>
     </div>

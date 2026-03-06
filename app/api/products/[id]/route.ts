@@ -4,10 +4,14 @@ import { Product } from '@/lib/data'
 
 export const runtime = 'nodejs'
 
+const ADMIN_COOKIE = 'admin_access_ok'
+
 function isAuthorized(request: Request) {
   const adminKey = process.env.ADMIN_ACCESS_KEY
   const headerKey = request.headers.get('x-admin')
-  return Boolean(adminKey && headerKey === adminKey)
+  if (adminKey && headerKey === adminKey) return true
+  const cookieHeader = request.headers.get('cookie') || ''
+  return cookieHeader.split(/; */).some((pair) => pair.startsWith(`${ADMIN_COOKIE}=1`))
 }
 
 export async function GET(
