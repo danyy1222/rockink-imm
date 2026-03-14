@@ -159,4 +159,3 @@ export function ProductCard({ product, onQuickView, onAddedToCart }: ProductCard
     </Card>
   );
 }
-

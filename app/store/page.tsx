@@ -14,38 +14,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { PRODUCTS, Product } from '@/lib/data';
-import { getCategories, mergeCategoriesWithProducts } from '@/lib/categories';
 import { getProductBrand, normalizeBrandName, productMatchesBrand } from '@/lib/product-brand';
 import { CartProvider, useCart } from '@/lib/cart-context';
 import { ArrowLeft, Search, ShoppingCart, SlidersHorizontal, X } from 'lucide-react';
 
-const CATEGORY_TREE = [
-  { label: 'Consumibles' },
-  { label: 'Hormonas' },
-  { label: 'Inseminación Artificial Bovinos' },
-  { label: 'Inseminación Artificial Ovinos' },
-  {
-    label: 'Línea de Ecógrafos',
-    children: ['MARCA BMV', 'MARCA DRAMINSKI', 'MARCA IMV'],
-  },
-  {
-    label: 'Materiales y Accesorios',
-    children: ['Alimentadores para terneros', 'Equipos Detectores Draminski', 'Trampa para moscas'],
-  },
-  {
-    label: 'Medios',
-    children: ['OPU', 'Equipos'],
-  },
-  {
-    label: 'Producción de Semen',
-    children: ['Análisis de semen', 'Electro eyaculador', 'Llenado de impresión de pajillas'],
-  },
-  { label: 'Sin categorizar' },
-  {
-    label: 'Transferencia de embriones',
-    children: ['Neovet', 'WTA'],
-  },
-];
+const CATEGORY_TREE: Array<{ label: string; children?: string[] }> = [];
 
 function isPajillaToroProduct(product: Product) {
   const text = `${product.name} ${product.description} ${product.category}`.toLowerCase();
@@ -59,7 +32,6 @@ function StoreContent() {
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [isPajillasView, setIsPajillasView] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
-  const [storedCategories, setStoredCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [treeSearchTerm, setTreeSearchTerm] = useState('');
   const [selectedTreeFilters, setSelectedTreeFilters] = useState<string[]>([]);
@@ -97,10 +69,6 @@ function StoreContent() {
   }, []);
 
   useEffect(() => {
-    setStoredCategories(getCategories());
-  }, []);
-
-  useEffect(() => {
     if (!toastMessage) return;
     const timer = setTimeout(() => setToastMessage(''), 2200);
     return () => clearTimeout(timer);
@@ -109,10 +77,14 @@ function StoreContent() {
   const deferredSearch = useDeferredValue(searchTerm.trim().toLowerCase());
   const deferredTreeSearch = useDeferredValue(treeSearchTerm.trim().toLowerCase());
 
-  const categories = useMemo(
-    () => mergeCategoriesWithProducts(allProducts.map((p) => p.category), storedCategories),
-    [allProducts, storedCategories]
-  );
+  const categories = useMemo(() => {
+    const unique = new Set<string>();
+    for (const product of allProducts) {
+      const value = String(product.category || '').trim();
+      if (value) unique.add(value);
+    }
+    return Array.from(unique).sort((a, b) => a.localeCompare(b, 'es'));
+  }, [allProducts]);
 
   const filteredProducts = useMemo(() => {
     const q = deferredSearch;
@@ -357,42 +329,44 @@ function StoreContent() {
               </Button>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="font-semibold text-foreground mb-3">Buscar por categoría</p>
-              <input
-                type="text"
-                value={treeSearchTerm}
-                onChange={(e) => setTreeSearchTerm(e.target.value)}
-                placeholder="Buscar por categoría"
-                className="w-full px-3 py-2 rounded-md border border-input bg-background mb-3"
-              />
-              <div className="max-h-64 sm:max-h-72 overflow-y-auto pr-1 space-y-2">
-                {filteredTree.map((item) => (
-                  <div key={`tree-${item.label}`} className="space-y-1">
-                    <label className="flex items-center gap-2 text-sm text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={selectedTreeFilters.includes(item.label)}
-                        onChange={() => toggleTreeFilter(item.label)}
-                        className="h-4 w-4 rounded border-input"
-                      />
-                      {item.label}
-                    </label>
-                    {item.children?.map((child) => (
-                      <label key={`tree-${item.label}-${child}`} className="ml-6 flex items-center gap-2 text-sm text-muted-foreground">
+            {CATEGORY_TREE.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="font-semibold text-foreground mb-3">Buscar por categoría</p>
+                <input
+                  type="text"
+                  value={treeSearchTerm}
+                  onChange={(e) => setTreeSearchTerm(e.target.value)}
+                  placeholder="Buscar por categoría"
+                  className="w-full px-3 py-2 rounded-md border border-input bg-background mb-3"
+                />
+                <div className="max-h-64 sm:max-h-72 overflow-y-auto pr-1 space-y-2">
+                  {filteredTree.map((item) => (
+                    <div key={`tree-${item.label}`} className="space-y-1">
+                      <label className="flex items-center gap-2 text-sm text-foreground">
                         <input
                           type="checkbox"
-                          checked={selectedTreeFilters.includes(child)}
-                          onChange={() => toggleTreeFilter(child)}
+                          checked={selectedTreeFilters.includes(item.label)}
+                          onChange={() => toggleTreeFilter(item.label)}
                           className="h-4 w-4 rounded border-input"
                         />
-                        {child}
+                        {item.label}
                       </label>
-                    ))}
-                  </div>
-                ))}
+                      {item.children?.map((child) => (
+                        <label key={`tree-${item.label}-${child}`} className="ml-6 flex items-center gap-2 text-sm text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={selectedTreeFilters.includes(child)}
+                            onChange={() => toggleTreeFilter(child)}
+                            className="h-4 w-4 rounded border-input"
+                          />
+                          {child}
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="rounded-xl border border-border bg-card p-4 space-y-3">
               <p className="font-semibold text-foreground">Marcas</p>

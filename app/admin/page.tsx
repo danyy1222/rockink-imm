@@ -9,8 +9,7 @@ import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PRODUCTS, Product, Brand, DEFAULT_BRANDS, HeroSlide, DEFAULT_HERO_SLIDES } from '@/lib/data';
-import { getCategories, addCategory, removeCategory, mergeCategoriesWithProducts } from '@/lib/categories';
-import { Edit2, Trash2, Plus, Folder, Check, Award, Image as ImageIcon } from 'lucide-react';
+import { Edit2, Trash2, Plus, Check, Award, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ImageUploader } from '@/components/image-uploader';
 
@@ -25,10 +24,7 @@ function AdminDashboardContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [redirected, setRedirected] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [newCategory, setNewCategory] = useState('');
-  const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'productos' | 'categorias' | 'hero' | 'ofertas' | 'marcas'>('productos');
+  const [activeTab, setActiveTab] = useState<'productos' | 'hero' | 'ofertas' | 'marcas'>('productos');
   const [selectedOffersProducts, setSelectedOffersProducts] = useState<string[]>([]);
   const [brands, setBrands] = useState<Brand[]>(DEFAULT_BRANDS);
   const [newBrandName, setNewBrandName] = useState('');
@@ -118,17 +114,8 @@ function AdminDashboardContent() {
       void loadProductsFromApi();
       void loadSiteConfigFromApi();
 
-      setCategories(mergeCategoriesWithProducts([], getCategories()));
     }
   }, [isMounted]);
-
-  useEffect(() => {
-    const merged = mergeCategoriesWithProducts(
-      products.map((p) => p.category),
-      getCategories()
-    );
-    setCategories(merged);
-  }, [products]);
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,23 +335,6 @@ function AdminDashboardContent() {
     e.currentTarget.value = '';
   };
 
-  const handleAddCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategory.trim()) return;
-
-    const updated = addCategory(newCategory.trim());
-    setCategories(mergeCategoriesWithProducts(products.map((p) => p.category), updated));
-    setNewCategory('');
-    setShowCategoryForm(false);
-  };
-
-  const handleDeleteCategory = (category: string) => {
-    if (confirm(`¿Deseas eliminar la categoría "${category}"?`)) {
-      const updated = removeCategory(category);
-      setCategories(mergeCategoriesWithProducts(products.map((p) => p.category), updated));
-    }
-  };
-
   if (!isLoggedIn) return null;
 
   return (
@@ -380,14 +350,6 @@ function AdminDashboardContent() {
             className="rounded-b-none"
           >
             Productos
-          </Button>
-          <Button
-            variant={activeTab === 'categorias' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('categorias')}
-            className="rounded-b-none"
-          >
-            <Folder className="w-4 h-4 mr-2" />
-            Categorías
           </Button>
           <Button
             variant={activeTab === 'hero' ? 'default' : 'ghost'}
@@ -459,18 +421,13 @@ function AdminDashboardContent() {
 
                   <div>
                     <label className="block text-sm font-semibold mb-2">Categoría</label>
-                    <select
+                    <input
+                      type="text"
                       value={formData.category || ''}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-input rounded"
-                    >
-                      <option value="">Seleccionar categoría</option>
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Escribe la categoría"
+                    />
                   </div>
 
                   <div className="md:col-span-2">
@@ -662,88 +619,6 @@ function AdminDashboardContent() {
           </div>
         )}
 
-        {/* Tab: Categorías */}
-        {activeTab === 'categorias' && (
-          <div className="space-y-4">
-            <h1 className="text-3xl font-bold text-primary">Gestión de Categorías</h1>
-            <div className="flex items-center justify-between mb-8">
-              <Button
-                onClick={() => setShowCategoryForm(!showCategoryForm)}
-                className="bg-secondary hover:bg-secondary/90"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {showCategoryForm ? 'Cancelar' : 'Nueva Categoría'}
-              </Button>
-            </div>
-
-            {/* Add Category Form */}
-            {showCategoryForm && (
-              <Card className="mb-8 border-2 border-accent">
-                <CardContent className="pt-6">
-                  <form onSubmit={handleAddCategory} className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold mb-2">Nombre de la Categoría</label>
-                        <input
-                          type="text"
-                          value={newCategory}
-                          onChange={(e) => setNewCategory(e.target.value)}
-                          className="w-full px-3 py-2 border border-input rounded"
-                          placeholder="Nombre de la categoría"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button type="submit" className="bg-primary hover:bg-primary/90">
-                        Crear Categoría
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowCategoryForm(false)}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Categories List */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-primary">
-                Total de categorías: {categories.length}
-              </h2>
-
-              <div className="grid gap-4">
-                {categories.map((category) => (
-                  <Card key={category} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4 items-center">
-                        <div className="flex-grow">
-                          <h3 className="text-lg font-bold text-primary">{category}</h3>
-                        </div>
-
-                        <div className="flex gap-2 flex-shrink-0">
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteCategory(category)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Tab: Hero */}
         {activeTab === 'hero' && (

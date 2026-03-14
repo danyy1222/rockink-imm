@@ -32,6 +32,33 @@ const channels = [
   },
 ];
 
+const socialLinks = [
+  {
+    name: 'Facebook',
+    handle: '/rockinkperu',
+    href: 'https://www.facebook.com/rockinkperu',
+    color: 'from-[#0f5bd6] to-[#1d4ed8]',
+    glow: 'shadow-[0_14px_30px_rgba(29,78,216,0.28)]',
+    icon: 'https://cdn.simpleicons.org/facebook/FFFFFF',
+  },
+  {
+    name: 'Instagram',
+    handle: '@rockink_imm',
+    href: 'https://www.instagram.com/rockink_imm/',
+    color: 'from-[#ec4899] via-[#f97316] to-[#f59e0b]',
+    glow: 'shadow-[0_14px_30px_rgba(236,72,153,0.28)]',
+    icon: 'https://cdn.simpleicons.org/instagram/FFFFFF',
+  },
+  {
+    name: 'TikTok',
+    handle: '@rockinkimm',
+    href: 'https://www.tiktok.com/@rockinkimm',
+    color: 'from-[#111827] to-[#0f172a]',
+    glow: 'shadow-[0_14px_30px_rgba(15,23,42,0.32)]',
+    icon: 'https://cdn.simpleicons.org/tiktok/FFFFFF',
+  },
+];
+
 export function ContactSection() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -250,31 +277,32 @@ export function ContactSection() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-background border border-border p-5 shadow-sm">
             <p className="text-sm font-semibold text-primary mb-2">Redes</p>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="https://www.facebook.com/rockinkperu"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-blue-600 text-white px-4 py-2 text-sm font-semibold hover:scale-105 transition-transform"
-              >
-                Facebook
-              </a>
-              <a
-                href="https://www.instagram.com/rockink_imm/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-pink-600 text-white px-4 py-2 text-sm font-semibold hover:scale-105 transition-transform"
-              >
-                Instagram
-              </a>
-              <a
-                href="https://www.tiktok.com/@rockinkimm"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-black text-white px-4 py-2 text-sm font-semibold hover:scale-105 transition-transform"
-              >
-                TikTok
-              </a>
+            <p className="text-xs text-muted-foreground mb-4">
+              Canales oficiales con respuestas rapidas y contenido tecnico.
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`group rounded-2xl border border-border/70 bg-white px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${social.color} ${social.glow} flex items-center justify-center`}>
+                      <img src={social.icon} alt={social.name} className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-foreground">{social.name}</p>
+                      <p className="text-xs text-muted-foreground">{social.handle}</p>
+                    </div>
+                    <div className="text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                      Ver perfil →
+                    </div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
 

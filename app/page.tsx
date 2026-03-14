@@ -111,7 +111,6 @@ function HomeContent() {
   const introBullPreparedRef = useRef<HTMLCanvasElement | null>(null);
   const introBullLoadedRef = useRef(false);
   const introExitScheduledRef = useRef(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const scrollTrackerRef = useRef({ y: 0, t: 0 });
   const scrollRafRef = useRef<number>(0);
   const pendingScrollYRef = useRef(0);
@@ -445,6 +444,14 @@ function HomeContent() {
   }, []);
 
   useEffect(() => {
+    if (!introVisible) return;
+    const timeout = window.setTimeout(() => {
+      setIntroVisible(false);
+    }, TOTAL_INTRO_DURATION + 800);
+    return () => window.clearTimeout(timeout);
+  }, [introVisible]);
+
+  useEffect(() => {
     if (kineticBoost <= 0.03) return;
     const timeout = window.setTimeout(() => {
       setKineticBoost((prev) => {
@@ -473,37 +480,8 @@ function HomeContent() {
     return () => window.removeEventListener('mousemove', onMove);
   }, []);
 
-  const playTechSound = (type: 'click' | 'section') => {
-    if (typeof window === 'undefined') return;
-    const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
-    if (!audioCtxRef.current) {
-      audioCtxRef.current = new AudioCtx();
-    }
-    const ctx = audioCtxRef.current;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    if (type === 'click') {
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(420, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(260, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.04, ctx.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.07);
-    } else {
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(150, ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(240, ctx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.03, ctx.currentTime + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.14);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.16);
-    }
+  const playTechSound = (_type: 'click' | 'section') => {
+    return;
   };
 
   useEffect(() => {
@@ -739,7 +717,13 @@ function HomeContent() {
     };
   }, []);
 
-  const currentHeroSlide = heroSlides[currentHeroIndex] || DEFAULT_HERO_SLIDES[0];
+  const currentHeroSlide = heroSlides[currentHeroIndex] || {
+    id: 'hero-fallback',
+    url: '',
+    badge: 'Rockink IMM',
+    title: 'Ingenieria Ganadera de Alto Nivel',
+    description: 'Soluciones tecnicas, repuestos y soporte especializado para operaciones ganaderas.',
+  };
   const homeBenefits = [
     {
       title: 'Asesoria personalizada',
@@ -1051,18 +1035,20 @@ function HomeContent() {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {heroSlides.map((slide, idx) => (
-            <button
-              key={slide.id}
-              onClick={() => setCurrentHeroIndex(idx)}
-              className={`h-2 rounded-full transition-all ${
-                idx === currentHeroIndex ? 'bg-primary w-8' : 'bg-white/50 w-2 hover:bg-white/75'
-              }`}
-              aria-label={`Ir al slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        {heroSlides.length > 0 && (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {heroSlides.map((slide, idx) => (
+              <button
+                key={slide.id}
+                onClick={() => setCurrentHeroIndex(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentHeroIndex ? 'bg-primary w-8' : 'bg-white/50 w-2 hover:bg-white/75'
+                }`}
+                aria-label={`Ir al slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Brands Section */}
